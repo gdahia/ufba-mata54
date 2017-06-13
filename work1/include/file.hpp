@@ -15,18 +15,21 @@ class File {
 private:
     const unsigned int file_size;
     const std::string file_name;
+    
     std::fstream handle;
+    unsigned int next_free;
     
     bool already_exists() const;
     void create();
     void open();
     void read_preamble();
-    void write_preamble();
 
 public:
     File(const unsigned int, const std::string & file_name = "records.log");
     ~File() = default;
     
+    Record read(const unsigned int);
+    void print();
 };
 
 #endif
