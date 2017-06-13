@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include "file.hpp"
+
 void record_entry() {
     unsigned int chave, idade;
     char nome[21];
@@ -30,8 +32,11 @@ void compute_stats() {
 
 }
 
+const unsigned int TAMANHO_ARQUIVO = 11;
+
 int main() {
     char opt;
+    File f(TAMANHO_ARQUIVO);
     while (std::cin >> opt, opt != 'e') {
         switch (opt) {
             case 'i': 
