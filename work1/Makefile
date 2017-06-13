@@ -1,6 +1,6 @@
 CXX = g++
 INCLUDE = -I $(CURDIR)/include
-CXXFLAGS = -std=c++11
+CXXFLAGS = -std=c++11 -Wall
 
 all: main.out
 
