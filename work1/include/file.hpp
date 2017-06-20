@@ -10,7 +10,6 @@ struct Record {
     int next, prev;
     char nome[21];
     
-    friend std::ostream & operator <<(std::ostream &, const Record &);
     friend std::istream & operator >>(std::istream &, Record &);
 };
 
@@ -20,7 +19,7 @@ private:
     const std::string file_name;
     
     std::fstream handle;
-    unsigned int next_free;
+    unsigned int next_empty;
     
     bool already_exists() const;
     void create();
@@ -28,7 +27,9 @@ private:
     void read_preamble();
     unsigned int hash(const unsigned int);
     void write(const Record &, const unsigned int);
-    void erase_free_slot(const unsigned int);
+    void remove(const Record &);
+    void relocate(Record &);
+    unsigned int chain(Record &);
 
 public:
     File(const unsigned int, const std::string & file_name = "records.log");
@@ -37,6 +38,7 @@ public:
     Record read(const unsigned int);
     void print(std::ostream &);
     void insert(Record &, std::ostream &);
+    void remove(const unsigned int, std::ostream &);
 };
 
 #endif
