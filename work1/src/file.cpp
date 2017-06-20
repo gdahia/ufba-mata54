@@ -158,27 +158,6 @@ unsigned int File::chain(Record & to_chain) {
     return old_list_head;
 }
 
-void File::remove(const unsigned int key, std::ostream & stream) {
-    
-}
-
-void File::print(std::ostream & stream) {
-	for (unsigned int i = 0; i < file_size; i++) {
-	    Record r = read(i);
-		stream << i << ": ";
-	    if (!r.good)
-            stream << "vazio " << r.next << " " << r.prev;
-        else {
-            stream << r.chave << " " << r.nome << " " << r.idade << " ";
-            if (r.next < 0)
-                stream << "nulo";
-            else
-                stream << r.next;
-        }
-        stream << std::endl;
-    }
-}
-
 void File::insert(Record & to_insert, std::ostream & stream) {
     // hash key
     const unsigned int key_hash = hash(to_insert.chave);
@@ -202,4 +181,41 @@ void File::insert(Record & to_insert, std::ostream & stream) {
     
     // insert in slot
     write(to_insert, key_hash);
+}
+
+void File::lookup(const unsigned int key, std::ostream & stream) {
+    const unsigned int hash_key = hash(key);
+    Record in_place = read(hash_key);
+
+    if (!in_place.good || hash_key != hash(in_place.chave))
+        stream << "chave nao encontrada " << key << std::endl;
+    else {
+        while (in_place.chave != key && in_place.next > 0)
+            in_place = read(in_place.next);
+        if (in_place.chave == key)
+            stream << "chave: " << key << std::endl << in_place.nome << std::endl << in_place.idade << std::endl;
+        else
+            stream << "chave nao encontrada " << key << std::endl;
+    }    
+}
+
+void File::remove(const unsigned int key, std::ostream & stream) {
+    
+}
+
+void File::print(std::ostream & stream) {
+	for (unsigned int i = 0; i < file_size; i++) {
+	    Record r = read(i);
+		stream << i << ": ";
+	    if (!r.good)
+            stream << "vazio " << r.next << " " << r.prev;
+        else {
+            stream << r.chave << " " << r.nome << " " << r.idade << " ";
+            if (r.next < 0)
+                stream << "nulo";
+            else
+                stream << r.next;
+        }
+        stream << std::endl;
+    }
 }

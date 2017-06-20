@@ -36,9 +36,10 @@ public:
     ~File() = default;
     
     Record read(const unsigned int);
-    void print(std::ostream &);
     void insert(Record &, std::ostream &);
+    void lookup(const unsigned int, std::ostream &);
     void remove(const unsigned int, std::ostream &);
+    void print(std::ostream &);
 };
 
 #endif

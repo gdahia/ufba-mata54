@@ -2,10 +2,6 @@
 
 #include "file.hpp"
 
-void record_lookup() {
-
-}
-
 void record_removal() {
 
 }
@@ -25,6 +21,7 @@ int main() {
     
     File f(TAMANHO_ARQUIVO);
     Record r;
+    unsigned int key;
     
     // handle input / output
     while (std::cin >> opt, opt != 'e') {
@@ -34,7 +31,8 @@ int main() {
                 f.insert(r, std::cout);
                 break;
             case 'c':
-                record_lookup();
+                std::cin >> key;
+                f.lookup(key, std::cout);
                 break;
             case 'r':
                 record_removal();
