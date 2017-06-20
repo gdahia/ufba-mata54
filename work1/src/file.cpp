@@ -1,10 +1,15 @@
 #include "file.hpp"
 
 std::ostream & operator <<(std::ostream & stream, const Record & r) {
-    if (r.good)
-        stream << r.chave << " " << r.nome << " " << r.idade << " " << r.next;
-    else
+    if (!r.good)
         stream << "vazio nulo";
+    else {
+        stream << r.chave << " " << r.nome << " " << r.idade << " ";
+        if (r.next < 0)
+            stream << "nulo";
+        else
+            stream << r.next;
+    }
     return stream;
 }
 
