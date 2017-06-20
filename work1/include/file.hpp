@@ -7,7 +7,7 @@
 struct Record {
     bool good;
     unsigned int chave, idade;
-    unsigned int next, prev;
+    int next, prev;
     char nome[21];
     
     friend std::ostream & operator <<(std::ostream &, const Record &);
