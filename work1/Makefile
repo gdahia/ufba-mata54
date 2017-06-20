@@ -7,10 +7,10 @@ all: main.out
 main.out: main.o file.o
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-%.o: src/%.cpp include/%.hpp
+file.o: src/file.cpp include/file.hpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $<
 
-%.o: src/%.cpp
+main.o: src/main.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $<
 
 clean:
