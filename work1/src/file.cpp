@@ -16,6 +16,11 @@ File::File(const unsigned int file_size, const std::string & file_name) : file_s
         create();
 }
 
+File::~File() {
+    handle.seekg(sizeof file_size);
+    handle.write(reinterpret_cast<const char *>(&next_empty), sizeof next_empty);
+}
+
 bool File::already_exists() const {
     std::ifstream f(file_name);
     return f.good();
@@ -95,14 +100,14 @@ Record File::read(const unsigned int pos) {
 }
 
 void File::remove(const Record & to_remove) {
-    // adjust to_remove.prev.next pointer to to_remove.next
+    // to_remove.prev.next points to to_remove.next
     if (to_remove.prev >= 0) {
         Record prev = read(to_remove.prev);
         prev.next = to_remove.next;
         write(prev, to_remove.prev);
     }
     
-    // adjust to_remove.next.prev pointer to to_remove.prev
+    // to_remove.next.prev points to to_remove.prev
     if (to_remove.next >= 0) {
         Record next = read(to_remove.next);
         next.prev = to_remove.prev;
@@ -111,7 +116,7 @@ void File::remove(const Record & to_remove) {
 }
 
 void File::relocate(Record & to_relocate) {
-    // adjust to_relocate.prev.next pointer to to_relocate's new position
+    // to_relocate.prev.next points to to_relocate's new position
     Record prev = read(to_relocate.prev);
     prev.next = next_empty;
     write(prev, to_relocate.prev);
@@ -134,8 +139,18 @@ void File::relocate(Record & to_relocate) {
     next_empty = empty.next;
 }
 
+bool File::search(const unsigned int key) {
+    Record current = read(hash(key));
+
+    // search key through chain
+    while (current.chave != key && current.next >= 0)
+        current = read(current.next);
+
+    return (current.good && current.chave == key);
+}
+
 unsigned int File::chain(Record & to_chain) {
-    // adjust to_chain.next.prev pointer to to_chain's new position
+    // to_chain.next.prev points to to_chain's new position
     if (to_chain.next >= 0) {
         Record next = read(to_chain.next);
         next.prev = next_empty;
@@ -146,7 +161,7 @@ unsigned int File::chain(Record & to_chain) {
     Record empty = read(next_empty);
     remove(empty);
     
-    // adjust to_chain.prev pointer to new list head
+    // to_chain.prev points to new list head
     to_chain.prev = hash(to_chain.chave);
     write(to_chain, next_empty);
     
@@ -167,24 +182,37 @@ void File::insert(Record & to_insert, std::ostream & stream) {
     
     if (!in_place.good) {
         remove(in_place);
-        to_insert.next = -1;
+        
+        // next and prev point to null
+        to_insert.prev = to_insert.next = -1;
         
         // update next_empty pointer
         if (key_hash == next_empty)
             next_empty = in_place.next;
+    
+        // write to slot
+        write(to_insert, key_hash);
     }
     else if (key_hash != hash(in_place.chave)) {
         relocate(in_place);
-        to_insert.next = -1;
+        
+        // next and prev point to null
+        to_insert.prev = to_insert.next = -1;
+        
+        // write to slot
+        write(to_insert, key_hash);
     }
-    else {
+    else if (!search(to_insert.chave)) {
         to_insert.next = chain(in_place);
+        
+        // prev points to null
+        to_insert.prev = -1;
+        
+        // write to slot
+        write(to_insert, key_hash);
     }
-    
-    to_insert.prev = -1;
-    
-    // insert in slot
-    write(to_insert, key_hash);
+    else
+        stream << "chave ja existente " << to_insert.chave << std::endl;
 }
 
 void File::lookup(const unsigned int key, std::ostream & stream) {
@@ -200,7 +228,7 @@ void File::lookup(const unsigned int key, std::ostream & stream) {
             stream << "chave: " << key << std::endl << in_place.nome << std::endl << in_place.idade << std::endl;
         else
             stream << "chave nao encontrada " << key << std::endl;
-    }    
+    }
 }
 
 void File::remove(const unsigned int key, std::ostream & stream) {

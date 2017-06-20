@@ -29,11 +29,12 @@ private:
     void write(const Record &, const unsigned int);
     void remove(const Record &);
     void relocate(Record &);
+    bool search(const unsigned int);
     unsigned int chain(Record &);
 
 public:
     File(const unsigned int, const std::string & file_name = "records.log");
-    ~File() = default;
+    ~File();
     
     Record read(const unsigned int);
     void insert(Record &, std::ostream &);
