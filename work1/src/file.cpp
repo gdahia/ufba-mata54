@@ -48,7 +48,7 @@ void File::create() {
         throw std::runtime_error("Unable to create file " + file_name);
     
     // initialize next free
-    next_free = 0;
+    next_free = file_size - 1;
     
     // write preamble
 	handle.write(reinterpret_cast<const char *>(&file_size), sizeof file_size);
@@ -58,20 +58,20 @@ void File::create() {
 	// write first record
 	Record r;
 	r.good = false;
-	r.prev = file_size - 1;
-	r.next = 1;
+	r.prev = 1;
+	r.next = file_size - 1;
 	handle.write(reinterpret_cast<const char *>(&r), sizeof r);
 	
 	// write 1st to (n - 1)th records
 	for (unsigned int i = 1; i < file_size - 1; i++) {
-		r.prev = i - 1;
-		r.next = i + 1;
+		r.prev = i + 1;
+		r.next = i - 1;
 		handle.write(reinterpret_cast<const char *>(&r), sizeof r);
 	}
 	
 	// write nth record
-	r.prev = file_size - 2;
-	r.next = 0;
+	r.prev = 0;
+	r.next = file_size - 2;
 	handle.write(reinterpret_cast<const char *>(&r), sizeof r);
 }
 
