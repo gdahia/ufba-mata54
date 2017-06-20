@@ -1,5 +1,20 @@
 #include "file.hpp"
-#include <iostream>
+
+std::ostream & operator <<(std::ostream & stream, const Record & r) {
+    if (r.good)
+        stream << r.chave << " " << r.nome << " " << r.idade << " " << r.next;
+    else
+        stream << "vazio nulo";
+    return stream;
+}
+
+std::istream & operator >>(std::istream & stream, Record & r) {
+    stream >> r.chave;
+    stream.ignore(1);
+    stream.getline(r.nome, 21);
+    stream >> r.idade;
+    return stream;
+}
 
 File::File(const unsigned int file_size, const std::string & file_name) : file_size(file_size), file_name(file_name) {
     if (already_exists())
@@ -74,13 +89,7 @@ Record File::read(const unsigned int pos) {
 	return r;
 }
 
-void File::print() {
-	for (unsigned int i = 0; i < file_size; i++) {
-		Record r = read(i);
-		std::cout << i << ": ";
-		if (r.good)
-			std::cout << r.chave << " " << r.nome << " " << r.idade << " " << r.next << std::endl;
-		else
-			std::cout << "vazio " << r.next << std::endl;
-	}
+void File::print(std::ostream & stream) {
+	for (unsigned int i = 0; i < file_size; i++)
+		stream << i << ": " << read(i) << std::endl;
 }

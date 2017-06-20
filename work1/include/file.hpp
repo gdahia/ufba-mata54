@@ -9,6 +9,9 @@ struct Record {
     unsigned int chave, idade;
     unsigned int next, prev;
     char nome[21];
+    
+    friend std::ostream & operator <<(std::ostream &, const Record &);
+    friend std::istream & operator >>(std::istream &, Record &);
 };
 
 class File {
@@ -29,7 +32,7 @@ public:
     ~File() = default;
     
     Record read(const unsigned int);
-    void print();
+    void print(std::ostream &);
 };
 
 #endif

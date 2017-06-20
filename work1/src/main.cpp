@@ -2,17 +2,6 @@
 
 #include "file.hpp"
 
-Record read_record() {
-    Record r;
-    
-    std::cin >> r.chave;
-    std::cin.ignore(1);
-    std::cin.getline(r.nome, 21);
-    std::cin >> r.idade;
-    
-    return r;
-}
-
 void record_lookup() {
 
 }
@@ -33,13 +22,16 @@ const unsigned int TAMANHO_ARQUIVO = 11;
 
 int main() {
     char opt;
+    
     File f(TAMANHO_ARQUIVO);
+    Record r;
     
     // handle input / output
     while (std::cin >> opt, opt != 'e') {
         switch (opt) {
             case 'i': 
-                read_record();
+                std::cin >> r;
+                std::cout << r << std::endl;
                 break;
             case 'c':
                 record_lookup();
@@ -48,7 +40,7 @@ int main() {
                 record_removal();
                 break;
             case 'p':
-                f.print();
+                f.print(std::cout);
                 break;
             case 'm':
                 compute_stats();
