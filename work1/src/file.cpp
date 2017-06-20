@@ -168,6 +168,10 @@ void File::insert(Record & to_insert, std::ostream & stream) {
     if (!in_place.good) {
         remove(in_place);
         to_insert.next = -1;
+        
+        // update next_empty pointer
+        if (key_hash == next_empty)
+            next_empty = in_place.next;
     }
     else if (key_hash != hash(in_place.chave)) {
         relocate(in_place);
