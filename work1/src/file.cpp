@@ -108,7 +108,20 @@ Record File::read(const unsigned int pos) {
 }
 
 void File::erase_free_slot(const unsigned int pos) {
-
+    Record in_place = read(pos);
+    
+    // doubly linked list removal
+    if (in_place.prev >= 0) {
+        Record prev = read(in_place.prev);
+        prev.next = in_place.next;
+        write(prev, in_place.prev);
+    }
+    
+    if (in_place.next >= 0) {
+        Record next = read(in_place.next);
+        next.prev = in_place.prev;
+        write(next, in_place.next);
+    }
 }
 
 void File::print(std::ostream & stream) {
