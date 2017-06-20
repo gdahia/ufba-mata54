@@ -26,6 +26,9 @@ private:
     void create();
     void open();
     void read_preamble();
+    unsigned int hash(const unsigned int);
+    void write(const Record &, const unsigned int);
+    void erase_free_slot(const unsigned int);
 
 public:
     File(const unsigned int, const std::string & file_name = "records.log");
@@ -33,6 +36,7 @@ public:
     
     Record read(const unsigned int);
     void print(std::ostream &);
+    void insert(Record &, std::ostream &);
 };
 
 #endif

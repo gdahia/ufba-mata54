@@ -31,7 +31,7 @@ int main() {
         switch (opt) {
             case 'i': 
                 std::cin >> r;
-                std::cout << r << std::endl;
+                f.insert(r, std::cout);
                 break;
             case 'c':
                 record_lookup();

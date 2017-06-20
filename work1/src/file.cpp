@@ -84,6 +84,18 @@ void File::read_preamble() {
     	throw std::runtime_error("Unexpected file size. Expected size " + std::to_string(file_size) + " and got " + std::to_string(saved_file_size));
 }
 
+unsigned int File::hash(const unsigned int key) {
+    return (key % file_size);
+}
+
+void File::write(const Record & r, const unsigned int pos) {
+    // adjust file pointer
+	handle.seekg(sizeof file_size + sizeof next_free + pos * sizeof(Record));
+	
+	// write record
+	handle.write(reinterpret_cast<const char *>(&r), sizeof r);
+}
+
 Record File::read(const unsigned int pos) {
 	// adjust file pointer
 	handle.seekg(sizeof file_size + sizeof next_free + pos * sizeof(Record));
@@ -95,7 +107,32 @@ Record File::read(const unsigned int pos) {
 	return r;
 }
 
+void File::erase_free_slot(const unsigned int pos) {
+
+}
+
 void File::print(std::ostream & stream) {
 	for (unsigned int i = 0; i < file_size; i++)
 		stream << i << ": " << read(i) << std::endl;
+}
+
+void File::insert(Record & to_insert, std::ostream & stream) {
+    // hash key
+    const unsigned int key_hash = hash(to_insert.chave);
+    
+    // check if slot is filled
+    Record in_place = read(key_hash);
+    if (in_place.good) {
+        // check whether attempted reinsertion or collision happened
+        if (in_place.chave == to_insert.chave) {
+            stream << "chave ja existente" << std::endl;
+        }
+        else {
+        }
+    }
+    else {
+        erase_free_slot(key_hash);
+        to_insert.next = to_insert.prev = -1;
+        write(to_insert, key_hash);
+    }
 }
