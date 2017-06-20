@@ -30,7 +30,7 @@ bool File::already_exists() const {
 }
 
 void File::open() {
-    handle.open(file_name, std::ios::in | std::ios::out | std::ios::binary | std::ios::app);
+    handle.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
     if (!handle.is_open())
         throw std::runtime_error("Unable to open existing file " + file_name);
 
