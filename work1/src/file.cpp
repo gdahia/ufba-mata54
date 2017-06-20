@@ -13,6 +13,7 @@ std::istream & operator >>(std::istream & stream, Record & r) {
     stream.ignore(1);
     stream.getline(r.nome, 21);
     stream >> r.idade;
+    r.good = true;
     return stream;
 }
 
