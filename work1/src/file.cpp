@@ -228,7 +228,7 @@ void File::lookup(const unsigned int key, std::ostream & stream) {
     if (!in_place.good || hash_key != hash(in_place.chave))
         stream << "chave nao encontrada " << key << std::endl;
     else {
-        while (in_place.chave != key && in_place.next > 0)
+        while (in_place.chave != key && in_place.next >= 0)
             in_place = read(in_place.next);
         if (in_place.chave == key)
             stream << "chave: " << key << std::endl << in_place.nome << std::endl << in_place.idade << std::endl;
