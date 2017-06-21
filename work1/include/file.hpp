@@ -29,7 +29,7 @@ private:
     void write(const Record &, const unsigned int);
     void remove(const Record &);
     void relocate(Record &);
-    bool search(const unsigned int);
+    int search(const unsigned int);
     unsigned int chain(Record &);
 
 public:

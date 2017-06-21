@@ -139,14 +139,20 @@ void File::relocate(Record & to_relocate) {
     next_empty = empty.next;
 }
 
-bool File::search(const unsigned int key) {
+int File::search(const unsigned int key) {
     Record current = read(hash(key));
+    int found_index = hash(key);
 
     // search key through chain
-    while (current.chave != key && current.next >= 0)
+    while (current.chave != key && current.next >= 0) {
         current = read(current.next);
+        found_index = current.next;
+    }
 
-    return (current.good && current.chave == key);
+    if (!current.good || current.chave != key)
+        return -1;
+    else
+        return found_index;
 }
 
 unsigned int File::chain(Record & to_chain) {
@@ -202,7 +208,7 @@ void File::insert(Record & to_insert, std::ostream & stream) {
         // write to slot
         write(to_insert, key_hash);
     }
-    else if (!search(to_insert.chave)) {
+    else if (search(to_insert.chave) >= 0) {
         to_insert.next = chain(in_place);
         
         // prev points to null
