@@ -139,8 +139,6 @@ void File::relocate(Record & to_relocate) {
     next_empty = empty.next;
 }
 
-#include <iostream>
-
 int File::search(const unsigned int key) {
     Record current = read(hash(key));
     int found_index = hash(key);
