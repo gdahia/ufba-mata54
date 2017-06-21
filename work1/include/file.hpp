@@ -27,7 +27,7 @@ private:
     void read_preamble();
     unsigned int hash(const unsigned int);
     void write(const Record &, const unsigned int);
-    void remove(const Record &);
+    void erase(const Record &);
     void relocate(Record &);
     int search(const unsigned int);
     unsigned int chain(Record &);

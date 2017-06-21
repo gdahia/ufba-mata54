@@ -2,14 +2,6 @@
 
 #include "file.hpp"
 
-void record_removal() {
-
-}
-
-void print_file() {
-
-}
-
 void compute_stats() {
 
 }
@@ -35,7 +27,8 @@ int main() {
                 f.lookup(key, std::cout);
                 break;
             case 'r':
-                record_removal();
+                std::cin >> key;
+                f.remove(key, std::cout);
                 break;
             case 'p':
                 f.print(std::cout);
