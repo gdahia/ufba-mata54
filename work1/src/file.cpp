@@ -1,5 +1,7 @@
 #include "file.hpp"
 
+#include <iomanip>
+
 std::istream & operator >>(std::istream & stream, Record & r) {
     stream >> r.chave;
     stream.ignore(1);
@@ -303,4 +305,37 @@ void File::print(std::ostream & stream) {
         }
         stream << std::endl;
     }
+}
+
+void File::stats(std::ostream & stream) {
+    /* iterate over records computing average access time E(A)
+    in O(1) memory and O(n^2) time and output result to ostream
+    argument */
+    // variables necessary for computing E(A)
+    unsigned int access_time = 0;
+    unsigned int number_of_records = 0;
+    
+    // iterate over file records
+    for (unsigned int i = 0; i < file_size; i++) {
+        // fetch ith record
+        Record current = read(i);
+        
+        // if slot is filled
+        if (current.good) {
+            number_of_records++;
+            access_time++;
+            
+            // follow chain backwards to compute access time of ith record
+            while (current.prev >= 0) {
+                current = read(current.prev);
+                access_time++;
+            }
+        }
+    }
+    
+    // compute E(A) through access_time / number_of_records
+    const double average_access_time = (double) access_time / number_of_records;
+    
+    // output to ostream argument following format requirements
+    stream << std::fixed << std::setprecision(1) << average_access_time << std::endl;
 }

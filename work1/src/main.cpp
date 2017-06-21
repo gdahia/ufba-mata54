@@ -2,10 +2,6 @@
 
 #include "file.hpp"
 
-void compute_stats() {
-
-}
-
 const unsigned int TAMANHO_ARQUIVO = 11;
 
 int main() {
@@ -34,7 +30,7 @@ int main() {
                 f.print(std::cout);
                 break;
             case 'm':
-                compute_stats();
+                f.stats(std::cout);
                 break;
         }
     }

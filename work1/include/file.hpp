@@ -41,6 +41,7 @@ public:
     void lookup(const unsigned int, std::ostream &);
     void remove(const unsigned int, std::ostream &);
     void print(std::ostream &);
+    void stats(std::ostream &);
 };
 
 #endif
