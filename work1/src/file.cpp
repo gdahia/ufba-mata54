@@ -283,17 +283,23 @@ void File::remove(const unsigned int key, std::ostream & stream) {
 }
 
 void File::print(std::ostream & stream) {
+    /* output formatted file information to ostream argument */
+    // iterate over all slots
 	for (unsigned int i = 0; i < file_size; i++) {
-	    Record r = read(i);
+	    Record current = read(i);
 		stream << i << ": ";
-	    if (!r.good)
+		
+		// if slot is not filled
+	    if (!current.good)
             stream << "vazio nulo";
         else {
-            stream << r.chave << " " << r.nome << " " << r.idade << " ";
-            if (r.next < 0)
+            stream << current.chave << " " << current.nome << " " << current.idade << " ";
+            
+            // format null pointer printing
+            if (current.next < 0)
                 stream << "nulo";
             else
-                stream << r.next;
+                stream << current.next;
         }
         stream << std::endl;
     }
