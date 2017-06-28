@@ -3,10 +3,10 @@
 #include <iomanip>
 
 std::istream & operator >>(std::istream & stream, Record & r) {
-    stream >> r.chave;
+    stream >> r.key;
     stream.ignore(1);
-    stream.getline(r.nome, 21);
-    stream >> r.idade;
+    stream.getline(r.name, 21);
+    stream >> r.age;
     r.good = true;
     return stream;
 }
@@ -184,13 +184,13 @@ int File::search(const unsigned int key) {
     Record current = read(found_index);
 
     // search key through chain
-    while (current.chave != key && current.next >= 0) {
+    while (current.key != key && current.next >= 0) {
         found_index = current.next;
         current = read(current.next);
     }
 
     // checks if search was successful or not
-    if (!current.good || current.chave != key)
+    if (!current.good || current.key != key)
         return -1;
     else
         return found_index;
@@ -213,7 +213,7 @@ unsigned int File::chain(Record & to_chain) {
     erase(empty);
     
     // to_chain.prev points to new list head
-    to_chain.prev = hash(to_chain.chave);
+    to_chain.prev = hash(to_chain.key);
     write(to_chain, next_empty);
     
     // update next empty slot pointer
@@ -230,7 +230,7 @@ void File::insert(Record & to_insert, std::ostream & stream) {
     - 'stream': ostream reference to output operations log */
     
     // hash key
-    const unsigned int key_hash = hash(to_insert.chave);
+    const unsigned int key_hash = hash(to_insert.key);
     
     // check if slot is filled
     Record in_place = read(key_hash);
@@ -250,7 +250,7 @@ void File::insert(Record & to_insert, std::ostream & stream) {
         // write to slot
         write(to_insert, key_hash);
     }
-    else if (key_hash != hash(in_place.chave)) {
+    else if (key_hash != hash(in_place.key)) {
         // current occupant of slot hashes to other position, ie this is first proper record to hash to this position
         // relocates current occupant
         relocate(in_place);
@@ -261,7 +261,7 @@ void File::insert(Record & to_insert, std::ostream & stream) {
         // write to slot
         write(to_insert, key_hash);
     }
-    else if (search(to_insert.chave) < 0) {
+    else if (search(to_insert.key) < 0) {
         // current slot occupant hashes to same key, but inserted key is not present
         // relocat current list head, chaining it
         to_insert.next = chain(in_place);
@@ -274,7 +274,7 @@ void File::insert(Record & to_insert, std::ostream & stream) {
     }
     else {
         // attempted reinsertion of key
-        stream << "chave ja existente " << to_insert.chave << std::endl;
+        stream << "chave ja existente " << to_insert.key << std::endl;
     }
 }
 
@@ -288,19 +288,19 @@ void File::lookup(const unsigned int key, std::ostream & stream) {
     Record in_place = read(hash_key);
 
     // checks existence of records with keys hashing to 'hash_key'
-    if (!in_place.good || hash_key != hash(in_place.chave)) {
+    if (!in_place.good || hash_key != hash(in_place.key)) {
         // no record has key hashing to 'hash_key'; hence, 'key' is key to no record
         stream << "chave nao encontrada " << key << std::endl;
     }
     else {
         // some record has key hashing to 'hash_key'
         // search for record with key 'key' through linked list
-        while (in_place.chave != key && in_place.next >= 0)
+        while (in_place.key != key && in_place.next >= 0)
             in_place = read(in_place.next);
         
         // checks if record was found
-        if (in_place.chave == key)
-            stream << "chave: " << key << std::endl << in_place.nome << std::endl << in_place.idade << std::endl;
+        if (in_place.key == key)
+            stream << "chave: " << key << std::endl << in_place.name << std::endl << in_place.age << std::endl;
         else
             stream << "chave nao encontrada " << key << std::endl;
     }
@@ -377,7 +377,7 @@ void File::print(std::ostream & stream) {
 	    if (!current.good)
             stream << "vazio nulo";
         else {
-            stream << current.chave << " " << current.nome << " " << current.idade << " ";
+            stream << current.key << " " << current.name << " " << current.age << " ";
             
             // format null pointer printing
             if (current.next < 0)

@@ -6,9 +6,9 @@
 
 struct Record {
     bool good;
-    unsigned int chave, idade;
+    unsigned int key, age;
     int next, prev;
-    char nome[21];
+    char name[21];
     
     friend std::istream & operator >>(std::istream &, Record &);
 };
