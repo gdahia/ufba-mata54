@@ -24,7 +24,7 @@ private:
     bool already_exists() const;
     void create();
     void open();
-    void read_preamble();
+    void read_header();
     unsigned int hash(const unsigned int);
     void write(const Record &, const unsigned int);
     void erase(const Record &);

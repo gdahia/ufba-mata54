@@ -19,70 +19,93 @@ File::File(const unsigned int file_size, const std::string & file_name) : file_s
 }
 
 File::~File() {
+    // updates header to file
     handle.seekg(sizeof file_size);
     handle.write(reinterpret_cast<const char *>(&next_empty), sizeof next_empty);
 }
 
 bool File::already_exists() const {
+    /* checks existence of file in path 'file_name'.
+    - returns: 'true' if file already exists and is accessible, and 'false' otherwise */
+    
     std::ifstream f(file_name);
     return f.good();
 }
 
 void File::open() {
+    /* opens file with path 'file_name' (without discarding its content) for reading and writing in binary mode. */
+    
+    // opens already existing file in read, write and binary mode
     handle.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
+    
+    // since open() is only called if file exists, if it not open after fstream open call, error happened
     if (!handle.is_open())
         throw std::runtime_error("Unable to open existing file " + file_name);
 
-    read_preamble();
+    read_header();
 }
 
 void File::create() {
+    /* creates new file with path 'file_name', initializing the empty slots with a linked list of their positions. */
+    
+    // creates new file in read, write and binary mode
     handle.open(file_name, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
     if (!handle.is_open())
         throw std::runtime_error("Unable to create file " + file_name);
     
-    // initialize next empty
+    // initialize next empty slot pointer
     next_empty = file_size - 1;
     
-    // write preamble
+    // write header
 	handle.write(reinterpret_cast<const char *>(&file_size), sizeof file_size);
 	handle.write(reinterpret_cast<const char *>(&next_empty), sizeof next_empty);
 	
-	// initialize empty records as empty space pointers
-	// write first record
-	Record r;
-	r.good = false;
-	r.prev = 1;
-	r.next = -1;
-	handle.write(reinterpret_cast<const char *>(&r), sizeof r);
+	// initialize empty slots with linked list 
+	// write first empty slot
+	Record empty;
+	empty.good = false;
+	empty.prev = 1;
+	empty.next = -1;
+	handle.write(reinterpret_cast<const char *>(&empty), sizeof empty);
 	
-	// write 1st to (n - 1)th records
+	// write internal empty slots
 	for (unsigned int i = 1; i < file_size - 1; i++) {
-		r.prev = i + 1;
-		r.next = i - 1;
-		handle.write(reinterpret_cast<const char *>(&r), sizeof r);
+		empty.prev = i + 1;
+		empty.next = i - 1;
+		handle.write(reinterpret_cast<const char *>(&empty), sizeof empty);
 	}
 	
-	// write nth record
-	r.prev = -1;
-	r.next = file_size - 2;
-	handle.write(reinterpret_cast<const char *>(&r), sizeof r);
+	// write last empty slot
+	empty.prev = -1;
+	empty.next = file_size - 2;
+	handle.write(reinterpret_cast<const char *>(&empty), sizeof empty);
 }
 
-void File::read_preamble() {
+void File::read_header() {
+    /* reads the header of a previously opened file. */
+    
 	unsigned int saved_file_size;
     handle.read(reinterpret_cast<char *>(&saved_file_size), sizeof saved_file_size);
     handle.read(reinterpret_cast<char *>(&next_empty), sizeof next_empty);
     
+    // checks if 'saved_file_size' equals current 'file_size'
     if (saved_file_size != file_size)
     	throw std::runtime_error("Unexpected file size. Expected size " + std::to_string(file_size) + " and got " + std::to_string(saved_file_size));
 }
 
 unsigned int File::hash(const unsigned int key) {
+    /* hashes 'key' with chosen hash function.
+    - 'key': key to be hashed
+    - returns: 'key' hash value */
+    
     return (key % file_size);
 }
 
 void File::write(const Record & r, const unsigned int pos) {
+    /* writes a record 'r' into 'pos' file position.
+    - 'r': record to be written to file
+    - 'pos': position in file to write record to */
+    
     // adjust file pointer
 	handle.seekg(sizeof file_size + sizeof next_empty + pos * sizeof(Record));
 	
@@ -91,7 +114,11 @@ void File::write(const Record & r, const unsigned int pos) {
 }
 
 Record File::read(const unsigned int pos) {
-	// adjust file pointer
+    /* read record in 'pos' file position.
+    - 'pos': position in file to be read
+    - returns: record read */
+    
+	// adjust file pointer to 'pos' position
 	handle.seekg(sizeof file_size + sizeof next_empty + pos * sizeof(Record));
 	
 	// read record
@@ -102,6 +129,9 @@ Record File::read(const unsigned int pos) {
 }
 
 void File::erase(const Record & to_erase) {
+    /* erase record 'to_erase' from linked list.
+    - 'to_erase': constant reference to file to be erased from linked list */
+    
     // to_erase.prev.next points to to_erase.next
     if (to_erase.prev >= 0) {
         Record prev = read(to_erase.prev);
@@ -118,6 +148,9 @@ void File::erase(const Record & to_erase) {
 }
 
 void File::relocate(Record & to_relocate) {
+    /* relocates record 'to_relocate' to next empty slot; 'to_relocate' is guaranteed to have a valid 'prev' pointer.
+    - 'to_relocate': reference of record to be relocated */
+    
     // to_relocate.prev.next points to to_relocate's new position
     Record prev = read(to_relocate.prev);
     prev.next = next_empty;
@@ -142,8 +175,13 @@ void File::relocate(Record & to_relocate) {
 }
 
 int File::search(const unsigned int key) {
-    Record current = read(hash(key));
+    /* searches file for record with key 'key'.
+    - 'key': key of record being searched
+    - returns: index of found record, or -1 on unsuccessful search */
+    
+    // reads current ocupant of hash(key) position
     int found_index = hash(key);
+    Record current = read(found_index);
 
     // search key through chain
     while (current.chave != key && current.next >= 0) {
@@ -151,6 +189,7 @@ int File::search(const unsigned int key) {
         current = read(current.next);
     }
 
+    // checks if search was successful or not
     if (!current.good || current.chave != key)
         return -1;
     else
@@ -158,6 +197,10 @@ int File::search(const unsigned int key) {
 }
 
 unsigned int File::chain(Record & to_chain) {
+    /* makes list head 'to_chain' the second element of the list and links it to the new list head.
+    - 'to_chain': reference to current list head
+    - returns: pointer to old list head position */
+    
     // to_chain.next.prev points to to_chain's new position
     if (to_chain.next >= 0) {
         Record next = read(to_chain.next);
@@ -182,6 +225,10 @@ unsigned int File::chain(Record & to_chain) {
 }
 
 void File::insert(Record & to_insert, std::ostream & stream) {
+    /* inserts record 'to_insert' in file if it has no record with this same key, indicating otherwise.
+    - 'to_insert': reference to record to be inserted
+    - 'stream': ostream reference to output operations log */
+    
     // hash key
     const unsigned int key_hash = hash(to_insert.chave);
     
@@ -189,6 +236,8 @@ void File::insert(Record & to_insert, std::ostream & stream) {
     Record in_place = read(key_hash);
     
     if (!in_place.good) {
+        // empty slot found
+        // removes empty slot from empty slot linked list
         erase(in_place);
         
         // next and prev point to null
@@ -202,6 +251,8 @@ void File::insert(Record & to_insert, std::ostream & stream) {
         write(to_insert, key_hash);
     }
     else if (key_hash != hash(in_place.chave)) {
+        // current occupant of slot hashes to other position, ie this is first proper record to hash to this position
+        // relocates current occupant
         relocate(in_place);
         
         // next and prev point to null
@@ -211,6 +262,8 @@ void File::insert(Record & to_insert, std::ostream & stream) {
         write(to_insert, key_hash);
     }
     else if (search(to_insert.chave) < 0) {
+        // current slot occupant hashes to same key, but inserted key is not present
+        // relocat current list head, chaining it
         to_insert.next = chain(in_place);
         
         // prev points to null
@@ -219,19 +272,33 @@ void File::insert(Record & to_insert, std::ostream & stream) {
         // write to slot
         write(to_insert, key_hash);
     }
-    else
+    else {
+        // attempted reinsertion of key
         stream << "chave ja existente " << to_insert.chave << std::endl;
+    }
 }
 
 void File::lookup(const unsigned int key, std::ostream & stream) {
+    /* looks up record with key 'key'.
+    - 'key': key to be looked up
+    - 'stream': ostream reference to output operations log */
+    
+    // reads record in-place in 'hash_key' position
     const unsigned int hash_key = hash(key);
     Record in_place = read(hash_key);
 
-    if (!in_place.good || hash_key != hash(in_place.chave))
+    // checks existence of records with keys hashing to 'hash_key'
+    if (!in_place.good || hash_key != hash(in_place.chave)) {
+        // no record has key hashing to 'hash_key'; hence, 'key' is key to no record
         stream << "chave nao encontrada " << key << std::endl;
+    }
     else {
+        // some record has key hashing to 'hash_key'
+        // search for record with key 'key' through linked list
         while (in_place.chave != key && in_place.next >= 0)
             in_place = read(in_place.next);
+        
+        // checks if record was found
         if (in_place.chave == key)
             stream << "chave: " << key << std::endl << in_place.nome << std::endl << in_place.idade << std::endl;
         else
@@ -240,11 +307,24 @@ void File::lookup(const unsigned int key, std::ostream & stream) {
 }
 
 void File::remove(const unsigned int key, std::ostream & stream) {
+    /* removes record with key 'key' if it is present in file, indicating otherwise.
+    - 'key': key of record to be removed
+    - 'stream': ostream reference to output operations log */
+    
+    // searches for record with key 'key'
     const int index = search(key);
-    if (index < 0)
+    
+    // check if such record was found
+    if (index < 0) {
+        // record not found
         stream << "chave nao encontrada " << key << std::endl;
+    }
     else {
+        // record found
+        // read record to be erased
         Record to_erase = read(index);
+        
+        // variable holding newly freed slot position
         unsigned int newly_freed;
         
         // check if element to be erased is head and not only element in chain
@@ -285,7 +365,9 @@ void File::remove(const unsigned int key, std::ostream & stream) {
 }
 
 void File::print(std::ostream & stream) {
-    /* output formatted file information to ostream argument */
+    /* output formatted file contents. 
+    - 'stream': ostream reference to output operations log */
+    
     // iterate over all slots
 	for (unsigned int i = 0; i < file_size; i++) {
 	    Record current = read(i);
@@ -308,9 +390,9 @@ void File::print(std::ostream & stream) {
 }
 
 void File::stats(std::ostream & stream) {
-    /* iterate over records computing average access time E(A)
-    in O(1) memory and O(n^2) time and output result to ostream
-    argument */
+    /* iterate over records computing average access time E(A).
+    - 'stream': ostream reference to output operations log */
+    
     // variables necessary for computing E(A)
     unsigned int access_time = 0;
     unsigned int number_of_records = 0;
