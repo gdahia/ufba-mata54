@@ -107,7 +107,7 @@ void File::write(const Record & r, const unsigned int pos) {
     - 'pos': position in file to write record to */
     
     // adjust file pointer
-	handle.seekg(sizeof file_size + sizeof next_empty + pos * sizeof(Record));
+	handle.seekg((sizeof file_size) + (sizeof next_empty) + pos * sizeof(Record));
 	
 	// write record
 	handle.write(reinterpret_cast<const char *>(&r), sizeof r);
@@ -119,7 +119,7 @@ Record File::read(const unsigned int pos) {
     - returns: record read */
     
 	// adjust file pointer to 'pos' position
-	handle.seekg(sizeof file_size + sizeof next_empty + pos * sizeof(Record));
+	handle.seekg((sizeof file_size) + (sizeof next_empty) + pos * sizeof(Record));
 	
 	// read record
 	Record r;
