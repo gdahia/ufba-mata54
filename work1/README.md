@@ -16,3 +16,6 @@ Quando o arquivo é criado, essa lista é inicializada com as posições em orde
 
 ### Arquivo
 O programa inicialmente verifica se o arquivo de caminho `File::filename` (por padrão, _records.log_) existe. Caso não exista, é criado e preenchido com um cabeçalho contendo o ponteiro da primeira posição livre no arquivo, o tamanho do arquivo e registros vazios.
+
+### Valor esperado de acessos
+O valor esperado de acessos é calculado iterando pelo arquivo, procurando por posições preenchidas por registros. Quando estes são encontrados, a lista encadeada de registros é percorrida em ordem reversa, até que se chegue ao primeiro elemento da lista, contabilizando os acessos. Esses valores são somados e o valor final é a razão do total de acessos desse processo e o número de registros no arquivo.
