@@ -30,7 +30,7 @@ private:
     void erase(const Record &);
     void relocate(Record &);
     int search(const unsigned int);
-    unsigned int chain(Record &);
+    void chain(Record &);
 
 public:
     File(const unsigned int, const std::string & file_name = "records.log");

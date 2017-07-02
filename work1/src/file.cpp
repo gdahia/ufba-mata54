@@ -196,10 +196,9 @@ int File::search(const unsigned int key) {
         return found_index;
 }
 
-unsigned int File::chain(Record & to_chain) {
-    /* makes list head 'to_chain' the second element of the list and links it to the new list head.
-    - 'to_chain': reference to current list head
-    - returns: pointer to old list head position */
+void File::chain(Record & to_chain) {
+    /* makes list head 'to_chain' the second element of the list.
+    - 'to_chain': reference to current list head */
     
     // to_chain.next.prev points to to_chain's new position
     if (to_chain.next >= 0) {
@@ -217,11 +216,7 @@ unsigned int File::chain(Record & to_chain) {
     write(to_chain, next_empty);
     
     // update next empty slot pointer
-    const unsigned int old_list_head = next_empty;
     next_empty = empty.next;
-    
-    // return pointer to old list head
-    return old_list_head;
 }
 
 void File::insert(Record & to_insert, std::ostream & stream) {
@@ -263,8 +258,11 @@ void File::insert(Record & to_insert, std::ostream & stream) {
     }
     else if (search(to_insert.key) < 0) {
         // current slot occupant hashes to same key, but inserted key is not present
-        // relocat current list head, chaining it
-        to_insert.next = chain(in_place);
+        // next points to position to be occupied be current list head
+        to_insert.next = next_empty;
+
+        // relocate current list head, chaining it
+        chain(in_place);
         
         // prev points to null
         to_insert.prev = -1;
