@@ -35,6 +35,9 @@ class File {
  public:
   File(const unsigned int, const std::string &file_name = "records.log");
   ~File();
+  File(const File &) = delete;
+  File(File &&) = delete;
+  File &operator=(const File &) = delete;
 
   Record read(const unsigned int);
   void insert(Record &, std::ostream &);
