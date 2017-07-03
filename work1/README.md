@@ -8,7 +8,7 @@ O arquivo que implementa o método é o _src/file.cpp_. O arquivo _src/main.cpp_
 O arquivo é estruturado como uma tabela _hash_, com colisões resolvidas por encadeamento. Diverge do método visto em sala de aula porque mantém uma lista encadeada para o rápido acesso a espaços vazios no arquivo.
 
 ### Registros
-Os registros são armazenados em _structs_ chamadas `Record`, definidas no arquivo _include/file.hpp_. Possuem membros representando cada um dos atributos da especificação, além de uma variável do tipo `bool` chamada `good`, que representa se o registro está ou não ocupado, e duas variáveis inteiras, `next`, que armazena o índice do espaço no arquivo do próximo registro na lista encadeada ou -1 caso ele não exista, e `prev`, o análogo de `next` para o registro anterior na lista encadeada.
+Os registros são armazenados em _structs_ chamadas `Record`, definidas no arquivo _include/file.hpp_. Possuem membros representando cada um dos atributos da especificação, além de uma variável do tipo `bool` chamada `good`, que representa se um registro é ou não válido, e duas variáveis inteiras, `next`, que armazena o índice do espaço no arquivo do próximo registro na lista encadeada ou -1 caso ele não exista, e `prev`, o análogo de `next` para o registro anterior na lista encadeada.
 
 ### Manuseio dos espaços livres
 Os espaços livres no arquivo são gerenciados com uma lista duplamente encadeada para suas posições, com um ponteiro na memória principal apontando para o primeiro elemento da lista. Com o fim da execução do programa, esse ponteiro é salvo no cabeçalho do arquivo.
