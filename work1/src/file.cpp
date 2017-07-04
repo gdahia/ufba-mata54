@@ -186,16 +186,17 @@ int File::search(const unsigned int key) {
   int found_index = hash(key);
   Record current = read(found_index);
 
-  // search key through chain
-  while (current.good && current.key != key && current.next >= 0) {
-    found_index = current.next;
-    current = read(found_index);
+  if (current.good) {
+    // search key through chain
+    while (current.key != key && current.next >= 0) {
+      found_index = current.next;
+      current = read(found_index);
+    }
+
+    if (current.key == key) return found_index;
   }
 
-  if (!current.good || current.key != key)
-    return -1;
-  else
-    return found_index;
+  return -1;
 }
 
 void File::chain(Record &to_chain) {
@@ -272,28 +273,15 @@ void File::lookup(const unsigned int key, std::ostream &stream) {
   - 'key': key to be looked up
   - 'stream': ostream reference to output operations log */
 
-  const unsigned int hash_key = hash(key);
-  Record in_place = read(hash_key);
+  const int index = search(key);
 
-  // checks existence of records with keys hashing to 'hash_key'
-  if (!in_place.good || hash_key != hash(in_place.key)) {
-    // no record has key hashing to 'hash_key'; hence, 'key' is key to no record
+  if (index >= 0) {
+    Record in_place = read(index);
+    stream << "chave: " << key << std::endl
+           << in_place.name << std::endl
+           << in_place.age << std::endl;
+  } else
     stream << "chave nao encontrada " << key << std::endl;
-
-  } else {
-    // some record has key hashing to 'hash_key'
-
-    // search for record with key 'key' through linked list
-    while (in_place.key != key && in_place.next >= 0)
-      in_place = read(in_place.next);
-
-    if (in_place.key == key)
-      stream << "chave: " << key << std::endl
-             << in_place.name << std::endl
-             << in_place.age << std::endl;
-    else
-      stream << "chave nao encontrada " << key << std::endl;
-  }
 }
 
 void File::remove(const unsigned int key, std::ostream &stream) {
