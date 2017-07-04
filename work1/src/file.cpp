@@ -187,7 +187,7 @@ int File::search(const unsigned int key) {
   Record current = read(found_index);
 
   // search key through chain
-  while (current.key != key && current.next >= 0) {
+  while (current.good && current.key != key && current.next >= 0) {
     found_index = current.next;
     current = read(current.next);
   }
