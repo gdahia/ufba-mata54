@@ -1,0 +1,13 @@
+O caso em que o elemento não se encontra no arquivo é trivialmente verificado, dada a correção do método 'search'. Caso o elemento seja encontrado, temos dois casos.
+
+  - Caso 1: o elemento a ser removido é o último da cadeia de 'hash(key)'
+  Pela correção da inserção, temos que 'to_erase.next' será nulo e o programa cairá no 'if' da linha 322. Atualizamos a próxima posição vazia na memória, determinamos que quem substituirá 'to_erase' é o registro vazio (já devidamente inicializado como primeiro elemento da lista encadeada de posições vazias) e ajustamos o apontador de 'next' do seu antecessor, caso ele exista, para nulo. Atualizamos a lista de espaços vazios e escrevemos o substituto no arquivo.
+  Os encadeamentos são feitos corretamente:
+    - Cadeia de 'hash(key)': como o elemento a ser removido é o último desta cadeia, o único elemento que temos que atualizar é seu (possível) antecessor. Isso é feito nas linhas 327-331. Na linha 331, se existir antecessor, seu ponteiro 'next' está apontando para nulo.
+    - Cadeia de espaços vazios: o espaço vazio aponta para a próxima posição livre, se ela existir, ou para nulo. Isso é garantido pelo atribuição da linha 316 e pelo fato de que 'next_empty' guarda a próxima posição livre, caso exista, ou nulo. A linha 323 acerta 'next_empty' para o nova posição livre. As linhas 347-352 garantem que, se há outra posição livre, seu apontador 'prev' aponta para 'next_empty', nesse caso, 'index'.
+
+  - Caso 2: o elemento a ser removido não é o último da cadeia.
+  Nesse caso, o substituto é o próximo elemento da lista. Assim, seu registro é lido e sua antiga posição se torna um espaço vazio.
+  Os encadeamentos também são feitos corretamente:
+    - Cadeia de 'hash(key)': como colocamos o elemento seguinte da cadeia para a posição do elemento removido, nenhuma alteração precisa ser feita em registros anteriores. O elemento seguinte, se existir, tem seu ponteiro de 'prev' apontado para a posição atual nas linhas 340-344. Como o elemento seguinte não muda de posição, nenhuma alteração é necessária para 'next' do elemento remanejado. Contudo, seu antigo 'prev' é o elemento removido e precisa ser atualizado. Isso é feito na linha 334.
+    - Cadeia de espaços vazios: idem a do caso 1, exceto pelo ajuste de 'next_empty' que ocorre na linha 337.
