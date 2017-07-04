@@ -1,4 +1,4 @@
-# Trabalho 1 de MATA54, UFBA,  2017.1.
+# Trabalho 1 - MATA54, UFBA, 2017.1
 
 ## Considerações gerais
 O trabalho foi implementado em C++, versão 11. Para compilá-lo, basta dar o comando `make` na pasta raiz e o executável `main.out` será gerado.
