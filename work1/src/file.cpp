@@ -331,6 +331,7 @@ void File::remove(const unsigned int key, std::ostream &stream) {
       }
     } else {
       replacement = read(to_erase.next);
+      replacement.prev = to_erase.prev;
 
       // to_erase.next is made empty
       next_empty = to_erase.next;
