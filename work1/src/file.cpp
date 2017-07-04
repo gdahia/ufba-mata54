@@ -66,7 +66,7 @@ void File::create() {
   // write first empty slot
   Record empty;
   empty.good = false;
-  empty.prev = 1;
+  empty.prev = (file_size > 1 ? 1 : -1);
   empty.next = -1;
   handle.write(reinterpret_cast<const char *>(&empty), sizeof empty);
 
@@ -79,7 +79,7 @@ void File::create() {
 
   // write last empty slot
   empty.prev = -1;
-  empty.next = file_size - 2;
+  empty.next = (file_size > 1 ? file_size - 2 : -1);
   handle.write(reinterpret_cast<const char *>(&empty), sizeof empty);
 }
 
