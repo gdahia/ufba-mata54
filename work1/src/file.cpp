@@ -310,37 +310,48 @@ void File::remove(const unsigned int key, std::ostream &stream) {
   } else {
     Record to_erase = read(index);
 
-    // variable holding newly freed slot position
-    unsigned int newly_freed;
-
-    // check if element to be erased is head and not only element in chain
-    if (to_erase.prev < 0 && to_erase.next >= 0) {
-      // replace head with second element
-      Record replacement = read(to_erase.next);
-      replacement.prev = -1;
-      write(replacement, index);
-
-      newly_freed = to_erase.next;
-    } else {
-      erase(to_erase);
-      newly_freed = index;
-    }
-
-    // write empty record to file
+    // empty record
     Record empty;
     empty.good = false;
-    empty.prev = -1;
     empty.next = next_empty;
-    write(empty, newly_freed);
+    empty.prev = -1;
+    const int next_next_empty = next_empty;
 
-    // old next_empty.prev points to newly freed
-    if (next_empty >= 0) {
-      empty = read(next_empty);
-      empty.prev = newly_freed;
-      write(empty, next_empty);
+    // replace removed record with either next or empty record
+    Record replacement;
+    if (to_erase.next < 0) {
+      next_empty = index;
+      replacement = empty;
+
+      // point to_erase.prev.next to null
+      if (to_erase.prev >= 0) {
+        Record prev = read(to_erase.prev);
+        prev.next = -1;
+        write(prev, to_erase.prev);
+      }
+    } else {
+      replacement = read(to_erase.next);
+
+      // to_erase.next is made empty
+      next_empty = to_erase.next;
+      write(empty, to_erase.next);
+
+      // point replacement.next.prev to replacements new position
+      if (replacement.next >= 0) {
+        Record next = read(replacement.next);
+        next.prev = index;
+        write(next, replacement.next);
+      }
     }
 
-    next_empty = newly_freed;
+    // adjust empty file list
+    if (next_next_empty >= 0) {
+      Record second = read(next_next_empty);
+      second.prev = next_empty;
+      write(second, next_next_empty);
+    }
+
+    write(replacement, index);
   }
 }
 
