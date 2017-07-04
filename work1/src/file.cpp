@@ -189,7 +189,7 @@ int File::search(const unsigned int key) {
   // search key through chain
   while (current.good && current.key != key && current.next >= 0) {
     found_index = current.next;
-    current = read(current.next);
+    current = read(found_index);
   }
 
   if (!current.good || current.key != key)
