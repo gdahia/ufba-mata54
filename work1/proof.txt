@@ -4,7 +4,7 @@ A record is, otherwise, "illegitimate".
 We also define a record to be invalid if it was read in an empty position - its 'good' member is always set to 'false'.
 In the context of pointers relative to the contents of the file, -1 is refered by as null.
 
-Basis:
+Initialization:
   The basis of the induction is before the first insertion is made.
 We analyze each method individually.
 
@@ -41,7 +41,7 @@ We analyze each method individually.
     We do not need to make the record valid, as this is done in the record reading procedure in line 10.
     'insert' is, therefore, correct for the empty file.
 
-Induction:
+Maintenance:
   We assume that for all insertions made up to this point, the invariants hold.
   We proceed to prove that they hold the operations in this state. 
 
@@ -122,7 +122,19 @@ Induction:
       In lines 159-161, we adjust its predecessor's 'next' pointer to the position the relocated record will occupy by the end of this call ('next_empty'), and write it to the file.
       In lines 164-168, we possibly do the inverse adjustment to the relocated record's successor, if it exists.
       We remove the position we are relocating to of the empty positions list through an 'erase' call in lines 171-172.
-      We know that 'next_empty' holds the correct empty position by the  empty list invariant.
+      We know that 'next_empty' holds the correct empty position by the empty list invariant.
       In line 175, the record is relocated in the file.
-      Since the only change made to the relocated record's list is its own relocation and we restored forward and backward navigability to it, the list invariant holds after the 'relocate' call.
-      We update 'next_empty' to the next empty position or to null, using the value of 'empty.next', correct by the empty list invariant.
+      Since the only change made to the relocated record's list is its own relocation, the restoration of its forward and backward navigability assures that the list invariant holds after the 'relocate' call.
+      We update 'next_empty' to the next empty position or to null, using the value of 'empty.next', correct by the empty list invariant, thus maintaning the empty list invariant.
+      The empty list invariant and the list invariant hold are the only ones affected by 'relocate'.
+      Since they hold, all invariants hold and 'relocate' is correct.
+
+    Since, by the legitimacy invariant, no other record with key hashing to 'key_hash' exist in the file, we point both pointers of 'to_insert' to null in line 252 and write it to the file.
+    This is enough to make the list invariant hold.
+    All invariants hold for this case of insertion, then.
+
+    When the record in position 'in_place' is legitimate, we first must assert that no record in the file has key 'to_insert.key'.
+    By the file invariant and the 'search' correctness, a 'search(to_insert.key)' finds such a record, if it exists, or assures that it does not exist.
+    If it exists, the program correctly skips to line 267 and does not insert the record with the duplicate key; the file invariant holds.
+
+    If it does not exist, we must insert it into the file.
