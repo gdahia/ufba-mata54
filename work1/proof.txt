@@ -130,7 +130,9 @@ Maintenance:
       Since they hold, all invariants hold and 'relocate' is correct.
 
     Since, by the legitimacy invariant, no other record with key hashing to 'key_hash' exist in the file, we point both pointers of 'to_insert' to null in line 252 and write it to the file.
-    This is enough to make the list invariant hold.
+    This is enough to make both the list and file invariants hold.
+    Now we have a record hashing to 'key_hash' position in the file.
+    Since its position is 'key_hash', the legitimacy invariant holds.
     All invariants hold for this case of insertion, then.
 
     When the record in position 'in_place' is legitimate, we first must assert that no record in the file has key 'to_insert.key'.
@@ -138,3 +140,25 @@ Maintenance:
     If it exists, the program correctly skips to line 267 and does not insert the record with the duplicate key; the file invariant holds.
 
     If it does not exist, we must insert it into the file.
+    We choose to put 'in_place' in the first empty position and 'to_insert' in its place.
+    In line 259, we point 'to_insert.next' to 'next_empty', a correct assignment since 'in_place' will be relocated there.
+    
+      - 'chain':
+        The relocation of 'to_chain' checks if there is a successor in this list (line 207); if that is the case, the successor's 'prev' is pointed to 'next_empty' in line 209, the position 'to_chain' will occupy by the end of the 'chain' call.
+        This suffices to guarantee forward navigability in the list, since, by the list invariant, the remainder of the list was correct and 'to_chain' was the only moved record.
+        Lines 214-215 remove 'next_empty' of the empty positions list.
+        Line 218 points 'to_chain.prev' to the first position of the list, following the decision made above, and line 219 write it to the file.
+        'next_empty' is pointed to 'empty.next' - by the empty list invariant, this assignment is correct.
+        As we erased the previous 'next_empty' from the empty positions list and we updated 'next_empty', the empty list invariant holds.
+
+    In lines 263-264, we point 'to_insert.prev' to null, as it is now the first element of its list and write it to the file.
+    The record that should be inserted is inserted and the file invariant holds.
+    We have also guaranteed forward and backwards navigability to this list, so the list invariant holds.
+    The record in 'key_hash' position is still legitimate and the position to which we moved 'in_place' was empty.
+    Therefore, the legitimacy invariant holds.
+    All invariants hold and 'insert' is correct.
+
+  This proves that the methods 'lookup', 'search' and 'insert' are correct.
+
+  - 'print':
+    'print' is trivially correct by the file and list invariants.
