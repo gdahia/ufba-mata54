@@ -1,0 +1,104 @@
+We prove, by induction, that the code in 'file.cpp' works.
+Prior to that, we define a record to be "legitimate" if its key is 'key' and the position it occupies in the file is 'hash(key)'.
+A record is, otherwise, "illegitimate".
+We also define a record to be invalid if it was read in an empty position - its 'good' member is always set to 'false'.
+In the context of pointers relative to the contents of the file, -1 is refered by as null.
+
+Basis:
+  The basis of the induction is before the first insertion is made.
+We analyze each method individually.
+  - 'lookup':
+    The 'lookup' method depends on the correctness of the 'search' method.
+    - 'search': 
+      Line 187 reads the record hashing to 'hash(key)'.
+      As the file is empty, the read record is invalid and the program never enters the 'if' in line 189.
+      Therefore, 'search' correctly returns null for queries on empty files.
+
+  - 'remove':
+    The 'search' call, as seen above, always returns null when the file is empty.
+    As this is the case in line 293, the 'if' in line 296 is satisfied and the program outputs that this key was not found.
+    Hence, the 'remove' method is also correct for the empty file.
+
+  - 'insert':
+    In the first record insertion, the file is currently empty.
+    Therefore, the read in line 232 returns an invalid record.
+    The program enters the 'if' in line 234 and 'erase(in_place)' is called.
+    We must guarantee that the empty positions list remains correct after this.
+      - 'erase':
+        If the empty record to be erased has a previous record in the empty file list, its 'prev' pointer is not null.
+        Hence, the program enters in the 'if' in line 139.
+        This makes the 'next' pointer of the previous record point to 'to_erase.next', effectively removing 'to_erase' from the forward listand writing these changes to the file.
+        The case when 'to_erase' has an following element is analogous and addressed in lines 146-150.
+        'erase', therefore, maintains the linked list of empty positions correct. 
+
+    We check if the 'key_hash' was the first slot in the linked list.
+    If it was, we update 'next_empty' following the linked list for empty positions.
+    'next_empty' is also kept correct through this insertion, then.
+    Last, we point both pointers of the inserted record to null, since it is the only record in the file, and write it down.
+    We do not need to make the record valid, as this is done in the record reading procedure in line 10.
+    'insert' is, therefore, correct for the empty file.
+
+Induction:
+  We assume that all insertions up to the nth record were done correctly.
+  We proceed to prove that the methods work in this state. 
+  - 'lookup':
+    Again, the proof for 'lookup' is tied to the 'search' proof below.
+    - 'search':
+      We divide the 'search' proof in two cases, successful and unsuccessful searches.
+      If a search is to be successful, the record being searched must be in the file.
+      We assume that it is.
+      If that is so, by the induction of the 'insert' procedure, we know that the record in 'hash(key)' position is legitimate.
+      Also by the inductive hypothesis, we have that all elements that hash to 'hash(key)' are properly chained to the current occupant of the 'hash(key)' position in the file.
+      Then, the 'while' iterating over the linked list of 'hash(key)' elements, in lines 191-194, finds it in at most 'n' steps.
+      Since the found record is valid, its key must be equal to the key being searched.
+      'current' is always the record in the 'found_index' position, so the record we are searching for must be in position 'found_index' - 'search', thus, is correct for successful searches.
+      An unsuccessful search means that the record with key 'key' is not present in the file.
+      The first, and simplest case, is when the 'hash(key)' slot is empty.
+      This situation is identical to a search in an empty file and is addressed above.
+      We now address the case when 'hash(key)' has a valid record.
+      By the induction hypothesis, the file only has records that have been inserted.
+      Therefore, the 'while' in lines 191-194 never ends because of condition 'current.key != key'.
+      It does end, however, because the induction hypothesis guarantees that the linked lists are well formed and their last record have 'next' pointed to null.
+      Therefore, it is false that 'current.key == key' and 'search' returns a null pointer.
+      'search' works when the file has 'n' records and, by induction, is correct for any number of records.
+
+  - 'remove':
+    The case where the record is not in the file is trivial by the proof of correctness of 'search'.
+    Therefore, we assume the record is in the file, and, by the correctness of 'search', that it is in position 'index'.
+    When 'to_erase' is removed, a new empty position will be available in the file.
+    We choose to make it the first empty slot.
+    This means that it has no predecessor and that its successor is the current first empty position, if it exists, or null.
+    By the induction hypothesis, 'next_empty' holds precisely that information.
+    The assignment in line 304 is, thus, correct. 
+    We divide the remainder of 'remove' in two cases: either the record being removed is the last in its list, or it is not.
+    If the record is the last in its list, it has no successor and, by the induction hypothesis, its 'next' pointer is nulled.
+    The condition for the 'if' in line 310 is then satisfied.
+    In this case, in lines 311-312 we pick position 'index' to be empty and update 'next_empty' accordingly.
+    This keep 'next_empty' correct, for this case.
+    In order to keep the removed record list correct, we must update its predecessor's 'next' pointer, if it exists.
+    This is addressed in the 'if' in lines 315-318: if 'to_erase' has a predecessor, by the induction hypothesis, 'to_erase.prev' points to its position, we point its 'next' pointer to null, and theses changes are written to the file.
+    This is enough to guarantee that the removed record list is correct for this case, since no other changes to it are made.
+    If the empty positions list was not itself empty, we must make its previous first record successor to the current empty record.
+    We have already addressed the forward way of this list previously and must keep the previous way correct as well.
+    Since 'empty.next' is already correct, we can use it in lines 337-341 as so.
+    By the inductive hypothesis, the empty positions list is correct so far.
+    This means that 'second.prev' was pointed to null and that the remainder of the list requires no alteration.
+    We point 'second.prev' to the new first record in the list and write the changes down to the file.
+    The last step is effectively writing down the newly emptied record (assigned to 'replacement' in line 312) to the file, keeping the empty positions list correct.
+    When the record being removed is the last of its list, 'remove' is therefore correct.
+    We now address the case when the record being removed is not the last of its list.
+    If that is so, by the induction hypothesis, 'to_erase.next' holds the position of its successor.
+    The program proceeds to the 'else' in lines 320-334.
+    In line 321, we pick the removed record's successor as the new occupant of position 'index'. 
+    Since 'replacement' will be placed in the removed record's position and, by the induction hypothesis, if they are in the same list, they hash to the same value, no alterations are necessary the list up to this point.
+    We need, however, to point 'replacement.prev' (previously pointed to 'index') to 'to_erase.prev' (it could be pointing to 'to_erase''s predecessor or to null, but it is correctly pointed, by the induction hypothesis).
+    Next, in lines 325-326, 'next_empty' is updated to the new first empty position and the empty record is written in the position previously held by the successor of the removed record.
+    'next_empty' is kept correct throughout these steps.
+    Since it is not altered after this point, its value is correct by the end of the 'remove' method.
+    Having proving it for both 'remove' cases, 'next_empty' is correct for removal in a file with 'n' records and, by induction, is correct for a file with any number of records in it.
+    The analysis of lines 337-341 is the same for the previous case, assuring that the empty positions list is correct for removal in files with 'n' or, by induction, any number whatsover of records in them.
+    We write the successor in 'index' position and the removed record's list is also correct for this case.
+    By induction, then, 'remove' is correct for files with any ammount of records written to them.
+
+  - 'insert':
+    Insertion of a key that hashes into an empty position is exactly the same as the basis case for insertion.
