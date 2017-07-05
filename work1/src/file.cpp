@@ -389,8 +389,12 @@ void File::stats(std::ostream &stream) {
     }
   }
 
-  const double average_access_time = (double)access_time / number_of_records;
+  if (!number_of_records)
+    stream << "0.0" << std::endl;
+  else {
+    const double average_access_time = (double)access_time / number_of_records;
 
-  stream << std::fixed << std::setprecision(1) << average_access_time
-         << std::endl;
+    stream << std::fixed << std::setprecision(1) << average_access_time
+           << std::endl;
+  }
 }
