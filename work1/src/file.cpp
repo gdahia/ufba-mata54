@@ -303,9 +303,9 @@ void File::remove(const unsigned int key, std::ostream &stream) {
     empty.good = false;
     empty.next = next_empty;
     empty.prev = -1;
-    const int next_next_empty = next_empty;
 
-    // replace removed record with either next or empty record
+    // replace removed record with either next, if not last in chain, or empty
+    // record, otherwise
     Record replacement;
     if (to_erase.next < 0) {
       next_empty = index;
@@ -334,10 +334,10 @@ void File::remove(const unsigned int key, std::ostream &stream) {
     }
 
     // adjust empty file list
-    if (next_next_empty >= 0) {
-      Record second = read(next_next_empty);
+    if (empty.next >= 0) {
+      Record second = read(empty.next);
       second.prev = next_empty;
-      write(second, next_next_empty);
+      write(second, empty.next);
     }
 
     write(replacement, index);
