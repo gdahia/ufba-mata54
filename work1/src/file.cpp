@@ -22,7 +22,8 @@ File::File(const unsigned int file_size, const std::string &file_name)
 File::~File() {
   // updates header to file
   handle.seekg(sizeof file_size);
-  handle.write(reinterpret_cast<const char *>(&next_empty), sizeof next_empty);
+  handle.write(reinterpret_cast<const char *>(&empty_list_head),
+               sizeof empty_list_head);
 }
 
 bool File::already_exists() const {
@@ -56,11 +57,12 @@ void File::create() {
     throw std::runtime_error("Unable to create file " + file_name);
 
   // initialize next empty slot pointer
-  next_empty = file_size - 1;
+  empty_list_head = file_size - 1;
 
   // write header
   handle.write(reinterpret_cast<const char *>(&file_size), sizeof file_size);
-  handle.write(reinterpret_cast<const char *>(&next_empty), sizeof next_empty);
+  handle.write(reinterpret_cast<const char *>(&empty_list_head),
+               sizeof empty_list_head);
 
   // initialize empty slots with linked list
   // write first empty slot
@@ -89,7 +91,8 @@ void File::read_header() {
   unsigned int saved_file_size;
   handle.read(reinterpret_cast<char *>(&saved_file_size),
               sizeof saved_file_size);
-  handle.read(reinterpret_cast<char *>(&next_empty), sizeof next_empty);
+  handle.read(reinterpret_cast<char *>(&empty_list_head),
+              sizeof empty_list_head);
 
   // checks if 'saved_file_size' equals current 'file_size'
   if (saved_file_size != file_size)
@@ -112,7 +115,8 @@ void File::write(const Record &r, const unsigned int pos) {
   - 'pos': position in file to write record to */
 
   // adjust file pointer, considering header space
-  handle.seekg((sizeof file_size) + (sizeof next_empty) + pos * sizeof(Record));
+  handle.seekg((sizeof file_size) + (sizeof empty_list_head) +
+               pos * sizeof(Record));
 
   handle.write(reinterpret_cast<const char *>(&r), sizeof r);
 }
@@ -123,7 +127,8 @@ Record File::read(const unsigned int pos) {
   - returns: record read */
 
   // adjust file pointer to 'pos' position
-  handle.seekg((sizeof file_size) + (sizeof next_empty) + pos * sizeof(Record));
+  handle.seekg((sizeof file_size) + (sizeof empty_list_head) +
+               pos * sizeof(Record));
 
   Record r;
   handle.read(reinterpret_cast<char *>(&r), sizeof r);
@@ -131,22 +136,24 @@ Record File::read(const unsigned int pos) {
   return r;
 }
 
-void File::erase(const Record &to_erase) {
-  /* erase record 'to_erase' from linked list.
-  - 'to_erase': constant reference to file to be erased from linked list */
+void File::empty_list_delete(const Record &to_delete) {
+  /* erase record 'to_delete' from linked list.
+  - 'to_delete': constant reference to file to be erased from linked list */
 
-  // to_erase.prev.next points to to_erase.next
-  if (to_erase.prev >= 0) {
-    Record prev = read(to_erase.prev);
-    prev.next = to_erase.next;
-    write(prev, to_erase.prev);
+  // to_delete.prev.next points to to_erase.next
+  if (to_delete.prev < 0)
+    empty_list_head = to_delete.next;
+  else {
+    Record prev = read(to_delete.prev);
+    prev.next = to_delete.next;
+    write(prev, to_delete.prev);
   }
 
-  // to_erase.next.prev points to to_erase.prev
-  if (to_erase.next >= 0) {
-    Record next = read(to_erase.next);
-    next.prev = to_erase.prev;
-    write(next, to_erase.next);
+  // to_delete.next.prev points to to_erase.prev
+  if (to_delete.next >= 0) {
+    Record next = read(to_delete.next);
+    next.prev = to_delete.prev;
+    write(next, to_delete.next);
   }
 }
 
@@ -157,25 +164,25 @@ void File::relocate(Record &to_relocate) {
 
   // to_relocate.prev.next points to to_relocate's new position
   Record prev = read(to_relocate.prev);
-  prev.next = next_empty;
+  prev.next = empty_list_head;
   write(prev, to_relocate.prev);
 
   // adjust to_relocate.next pointer to to_relocate's new position
   if (to_relocate.next >= 0) {
     Record next = read(to_relocate.next);
-    next.prev = next_empty;
+    next.prev = empty_list_head;
     write(next, to_relocate.next);
   }
 
+  // save relocation position prior to empty list update
+  const int relocation_pos = empty_list_head;
+
   // doubly linked list removal of empty slot
-  Record empty = read(next_empty);
-  erase(empty);
+  Record empty = read(empty_list_head);
+  empty_list_delete(empty);
 
   // replace empty slot with to_relocate
-  write(to_relocate, next_empty);
-
-  // update next empty slot pointer
-  next_empty = empty.next;
+  write(to_relocate, relocation_pos);
 }
 
 int File::search(const unsigned int key) {
@@ -206,21 +213,21 @@ void File::chain(Record &to_chain) {
   // to_chain.next.prev points to to_chain's new position
   if (to_chain.next >= 0) {
     Record next = read(to_chain.next);
-    next.prev = next_empty;
+    next.prev = empty_list_head;
     write(next, to_chain.next);
   }
 
+  // save chaining position prior to empty list update
+  const int chain_pos = empty_list_head;
+
   // doubly linked list removal of empty slot
-  Record empty = read(next_empty);
-  erase(empty);
+  Record empty = read(empty_list_head);
+  empty_list_delete(empty);
 
   // to_chain.prev points to new list head
   to_chain.prev = hash(to_chain.key);
 
-  write(to_chain, next_empty);
-
-  // update next empty slot pointer
-  next_empty = empty.next;
+  write(to_chain, chain_pos);
 }
 
 void File::insert(Record &to_insert, std::ostream &stream) {
@@ -234,9 +241,8 @@ void File::insert(Record &to_insert, std::ostream &stream) {
   if (!in_place.good) {
     // empty slot found
 
-    // erases empty slot and adjust next empty pointer if necessary
-    erase(in_place);
-    if (key_hash == next_empty) next_empty = in_place.next;
+    // erases empty slot
+    empty_list_delete(in_place);
 
     // write first linked list element
     to_insert.prev = to_insert.next = -1;
@@ -256,7 +262,7 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     // current slot occupant hashes to same key, but inserted key is not present
 
     // to_insert.next points to position to be occupied be current list head
-    to_insert.next = next_empty;
+    to_insert.next = empty_list_head;
 
     // linked list insertion
     chain(in_place);
@@ -301,14 +307,14 @@ void File::remove(const unsigned int key, std::ostream &stream) {
     // empty record
     Record empty;
     empty.good = false;
-    empty.next = next_empty;
+    empty.next = empty_list_head;
     empty.prev = -1;
 
     // replace removed record with either next, if not last in chain, or empty
     // record, otherwise
     Record replacement;
     if (to_erase.next < 0) {
-      next_empty = index;
+      empty_list_head = index;
       replacement = empty;
 
       // point to_erase.prev.next to null
@@ -322,7 +328,7 @@ void File::remove(const unsigned int key, std::ostream &stream) {
       replacement.prev = to_erase.prev;
 
       // to_erase.next is made empty
-      next_empty = to_erase.next;
+      empty_list_head = to_erase.next;
       write(empty, to_erase.next);
 
       // point replacement.next.prev to replacements new position
@@ -336,7 +342,7 @@ void File::remove(const unsigned int key, std::ostream &stream) {
     // adjust empty file list
     if (empty.next >= 0) {
       Record second = read(empty.next);
-      second.prev = next_empty;
+      second.prev = empty_list_head;
       write(second, empty.next);
     }
 

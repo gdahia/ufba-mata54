@@ -19,7 +19,7 @@ class File {
   const std::string file_name;
 
   std::fstream handle;
-  unsigned int next_empty;
+  int empty_list_head;
 
   bool already_exists() const;
   void create();
@@ -27,7 +27,7 @@ class File {
   void read_header();
   unsigned int hash(const unsigned int);
   void write(const Record &, const unsigned int);
-  void erase(const Record &);
+  void empty_list_delete(const Record &);
   void relocate(Record &);
   int search(const unsigned int);
   void chain(Record &);
