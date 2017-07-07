@@ -48,7 +48,8 @@ void File::open() {
 }
 
 void File::create() {
-  /* creates new file with path 'file_name', initializing the empty slots with a
+  /* creates new file with path 'file_name', initializing the empty positions
+   * with a
    * linked list of their positions. */
 
   handle.open(file_name, std::ios::in | std::ios::out | std::ios::binary |
@@ -56,7 +57,7 @@ void File::create() {
   if (!handle.is_open())
     throw std::runtime_error("Unable to create file " + file_name);
 
-  // initialize next empty slot pointer
+  // initialize next empty position pointer
   empty_list_head = file_size - 1;
 
   // write header
@@ -64,22 +65,22 @@ void File::create() {
   handle.write(reinterpret_cast<const char *>(&empty_list_head),
                sizeof empty_list_head);
 
-  // initialize empty slots with linked list
-  // write first empty slot
+  // initialize empty positions with linked list
+  // write first empty position
   Record empty;
   empty.good = false;
   empty.prev = (file_size > 1 ? 1 : -1);
   empty.next = -1;
   handle.write(reinterpret_cast<const char *>(&empty), sizeof empty);
 
-  // write internal empty slots
+  // write internal empty positions
   for (unsigned int i = 1; i < file_size - 1; i++) {
     empty.prev = i + 1;
     empty.next = i - 1;
     handle.write(reinterpret_cast<const char *>(&empty), sizeof empty);
   }
 
-  // write last empty slot
+  // write last empty position
   empty.prev = -1;
   empty.next = (file_size > 1 ? file_size - 2 : -1);
   handle.write(reinterpret_cast<const char *>(&empty), sizeof empty);
@@ -158,7 +159,7 @@ void File::empty_list_delete(const Record &to_delete) {
 }
 
 void File::relocate(Record &to_relocate) {
-  /* relocates record 'to_relocate' to next empty slot; 'to_relocate' is
+  /* relocates record 'to_relocate' to next empty position; 'to_relocate' is
   guaranteed to have a valid 'prev' pointer.
   - 'to_relocate': reference of record to be relocated */
 
@@ -177,11 +178,11 @@ void File::relocate(Record &to_relocate) {
   // save relocation position prior to empty list update
   const int relocation_pos = empty_list_head;
 
-  // doubly linked list removal of empty slot
+  // doubly linked list removal of empty position
   Record empty = read(empty_list_head);
   empty_list_delete(empty);
 
-  // replace empty slot with to_relocate
+  // replace empty position with to_relocate
   write(to_relocate, relocation_pos);
 }
 
@@ -220,7 +221,7 @@ void File::chain(Record &to_chain) {
   // save chaining position prior to empty list update
   const int chain_pos = empty_list_head;
 
-  // doubly linked list removal of empty slot
+  // doubly linked list removal of empty position
   Record empty = read(empty_list_head);
   empty_list_delete(empty);
 
@@ -239,9 +240,9 @@ void File::insert(Record &to_insert, std::ostream &stream) {
   const unsigned int key_hash = hash(to_insert.key);
   Record in_place = read(key_hash);
   if (!in_place.good) {
-    // empty slot found
+    // empty position found
 
-    // erases empty slot
+    // erases empty position
     empty_list_delete(in_place);
 
     // write first linked list element
@@ -249,7 +250,7 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     write(to_insert, key_hash);
 
   } else if (key_hash != hash(in_place.key)) {
-    // current occupant of slot hashes to other position, ie this is first
+    // current occupant of position hashes to other position, ie this is first
     // proper record to hash to this position
 
     relocate(in_place);
@@ -259,7 +260,8 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     write(to_insert, key_hash);
 
   } else if (search(to_insert.key) < 0) {
-    // current slot occupant hashes to same key, but inserted key is not present
+    // current position occupant hashes to same key, but inserted key is not
+    // present
 
     // to_insert.next points to position to be occupied be current list head
     to_insert.next = empty_list_head;
@@ -339,7 +341,7 @@ void File::remove(const unsigned int key, std::ostream &stream) {
       }
     }
 
-    // adjust empty file list
+    // adjust empty positions list
     if (empty.next >= 0) {
       Record second = read(empty.next);
       second.prev = empty_list_head;
@@ -358,7 +360,7 @@ void File::print(std::ostream &stream) {
     Record current = read(i);
     stream << i << ": ";
 
-    // if slot is not filled
+    // if position is not filled
     if (!current.good)
       stream << "vazio nulo";
     else {
