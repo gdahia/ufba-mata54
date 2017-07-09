@@ -250,8 +250,7 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     write(to_insert, key_hash);
 
   } else if (key_hash != hash(in_place.key)) {
-    // current occupant of position hashes to other position, ie this is first
-    // proper record to hash to this position
+    // in_place is illegitimate, ie, to_insert is not in the file
 
     relocate(in_place);
 
@@ -260,15 +259,14 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     write(to_insert, key_hash);
 
   } else if (search(to_insert.key) < 0) {
-    // current position occupant hashes to same key, but inserted key is not
-    // present
+    // in_place is legitimate and to_insert is not in the file
 
-    // to_insert.next points to position to be occupied be current list head
+    // adjust to_insert pointers
     to_insert.next = empty_list_head;
+    to_insert.prev = -1;
 
     // linked list insertion
     chain(in_place);
-    to_insert.prev = -1;
     write(to_insert, key_hash);
 
   } else {
