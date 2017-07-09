@@ -1,7 +1,7 @@
 # Trabalho 1 - MATA54, UFBA, 2017.1
 
 ## Considerações gerais
-O trabalho foi implementado em C++, versão 11. Para compilá-lo, basta dar o comando `make` na pasta raiz e o executável `main.out` será gerado.
+O trabalho foi implementado em C++, versão 11. Para compilá-lo, basta dar o comando `make` na pasta raiz e o executável `main.out` será gerado, também na pasta raiz.
 O arquivo que implementa o método é o _src/file.cpp_. O arquivo _src/main.cpp_ faz o manuseio da entrada e saída e possui a definição da variável `TAMANHO_ARQUIVO`. O arquivo _include/file.hpp_ apresenta a estrutura utilizada para os registros e o cabeçalho das funções de _src/file.cpp_.
 
 ## Detalhes de implementação
