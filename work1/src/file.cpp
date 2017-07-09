@@ -193,7 +193,7 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     // erases empty position
     empty_list_delete(in_place);
 
-    // write first linked list element
+    // write linked list head
     to_insert.prev = to_insert.next = -1;
     write(to_insert, key_hash);
 
@@ -222,7 +222,7 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     // replace empty position with in_place
     write(in_place, relocation_pos);
 
-    // write first linked list element
+    // write linked list head
     to_insert.prev = to_insert.next = -1;
     write(to_insert, key_hash);
 
