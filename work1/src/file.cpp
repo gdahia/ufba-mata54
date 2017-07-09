@@ -158,34 +158,6 @@ void File::empty_list_delete(const Record &to_delete) {
   }
 }
 
-void File::relocate(const Record &to_relocate) {
-  /* relocates record 'to_relocate' to next empty position; 'to_relocate' is
-  guaranteed to have a valid 'prev' pointer.
-  - 'to_relocate': reference of record to be relocated */
-
-  // to_relocate.prev.next points to to_relocate's new position
-  Record prev = read(to_relocate.prev);
-  prev.next = empty_list_head;
-  write(prev, to_relocate.prev);
-
-  // adjust to_relocate.next pointer to to_relocate's new position
-  if (to_relocate.next >= 0) {
-    Record next = read(to_relocate.next);
-    next.prev = empty_list_head;
-    write(next, to_relocate.next);
-  }
-
-  // save relocation position prior to empty list update
-  const int relocation_pos = empty_list_head;
-
-  // doubly linked list removal of empty position
-  Record empty = read(empty_list_head);
-  empty_list_delete(empty);
-
-  // replace empty position with to_relocate
-  write(to_relocate, relocation_pos);
-}
-
 int File::search(const unsigned int key) {
   /* searches file for record with key 'key'.
   - 'key': key of record being searched
@@ -195,7 +167,7 @@ int File::search(const unsigned int key) {
   Record current = read(found_index);
 
   if (current.good) {
-    // search key through chain
+    // search key through list
     while (current.key != key && current.next >= 0) {
       found_index = current.next;
       current = read(found_index);
@@ -205,30 +177,6 @@ int File::search(const unsigned int key) {
   }
 
   return -1;
-}
-
-void File::chain(Record &to_chain) {
-  /* makes list head 'to_chain' the second element of the list.
-  - 'to_chain': reference to current list head */
-
-  // to_chain.next.prev points to to_chain's new position
-  if (to_chain.next >= 0) {
-    Record next = read(to_chain.next);
-    next.prev = empty_list_head;
-    write(next, to_chain.next);
-  }
-
-  // save chaining position prior to empty list update
-  const int chain_pos = empty_list_head;
-
-  // doubly linked list removal of empty position
-  Record empty = read(empty_list_head);
-  empty_list_delete(empty);
-
-  // to_chain.prev points to new list head
-  to_chain.prev = hash(to_chain.key);
-
-  write(to_chain, chain_pos);
 }
 
 void File::insert(Record &to_insert, std::ostream &stream) {
@@ -252,7 +200,27 @@ void File::insert(Record &to_insert, std::ostream &stream) {
   } else if (key_hash != hash(in_place.key)) {
     // in_place is illegitimate, ie, to_insert is not in the file
 
-    relocate(in_place);
+    // in_place.prev.next points to in_place's new position
+    Record prev = read(in_place.prev);
+    prev.next = empty_list_head;
+    write(prev, in_place.prev);
+
+    // adjust in_place.next pointer to in_place's new position
+    if (in_place.next >= 0) {
+      Record next = read(in_place.next);
+      next.prev = empty_list_head;
+      write(next, in_place.next);
+    }
+
+    // save relocation position prior to empty list update
+    const int relocation_pos = empty_list_head;
+
+    // doubly linked list removal of empty position
+    Record empty = read(empty_list_head);
+    empty_list_delete(empty);
+
+    // replace empty position with in_place
+    write(in_place, relocation_pos);
 
     // write first linked list element
     to_insert.prev = to_insert.next = -1;
@@ -265,8 +233,25 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     to_insert.next = empty_list_head;
     to_insert.prev = -1;
 
-    // linked list insertion
-    chain(in_place);
+    // in_place.next.prev points to in_place's new position
+    if (in_place.next >= 0) {
+      Record next = read(in_place.next);
+      next.prev = empty_list_head;
+      write(next, in_place.next);
+    }
+
+    // save chaining position prior to empty list update
+    const int chain_pos = empty_list_head;
+
+    // doubly linked list removal of empty position
+    Record empty = read(empty_list_head);
+    empty_list_delete(empty);
+
+    // in_place.prev points to new list head
+    in_place.prev = key_hash;
+
+    // write changes to file
+    write(in_place, chain_pos);
     write(to_insert, key_hash);
 
   } else {
@@ -310,7 +295,7 @@ void File::remove(const unsigned int key, std::ostream &stream) {
     empty.next = empty_list_head;
     empty.prev = -1;
 
-    // replace removed record with either next, if not last in chain, or empty
+    // replace removed record with either next, if not last in list, or empty
     // record, otherwise
     Record replacement;
     if (to_erase.next < 0) {
@@ -387,7 +372,7 @@ void File::stats(std::ostream &stream) {
       number_of_records++;
       access_time++;
 
-      // follow chain backwards to compute access time of ith record
+      // follow list backwards to compute access time of ith record
       while (current.prev >= 0) {
         current = read(current.prev);
         access_time++;

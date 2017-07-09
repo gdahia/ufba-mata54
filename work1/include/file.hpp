@@ -28,9 +28,7 @@ class File {
   unsigned int hash(const unsigned int);
   void write(const Record &, const unsigned int);
   void empty_list_delete(const Record &);
-  void relocate(const Record &);
   int search(const unsigned int);
-  void chain(Record &);
 
  public:
   File(const unsigned int, const std::string &file_name = "records.log");
