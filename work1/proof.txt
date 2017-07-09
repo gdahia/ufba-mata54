@@ -102,8 +102,7 @@ Maintenance:
     Then, we point the predecessor's 'next' pointer to null, and these changes are written to the file.
     Since no other changes are made to any other list, except the empty positions list, the list invariant holds for 'remove' when the record is the last of its list.
 
-    If the empty positions list was not itself empty before this insertion, we must make its previous head the successor of to current list head.
-    We have already addressed the forward way of this list previously and must keep the backwards way correct as well.
+    If the empty positions list was not itself empty before this insertion, we must make its previous head the successor of the current list head.
     Since 'empty.next' is already correct, we can use it in lines 328-332.
     The empty list invariant assures us that 'second.prev' was pointed to null and that the remainder of the list requires no alteration.
     We point 'second.prev' to the empty positions list head and save the changes to the file.
@@ -115,7 +114,7 @@ Maintenance:
     If that is so, by the list invariant, 'to_erase.next' holds the position of its successor.
     The program, then, proceeds to the 'else' in lines 311-324.
     In line 312, we pick the removed record's successor as the new occupant of position 'index'. 
-    This replacement respects both the list invariant, because the linked records have, by transitivity, all the same hash value, and the legitimacy invariant, for if the removed record was the head of its list, replacing it by its successor still makes the occupant of its position legitimate.
+    This replacement respects both the list invariant, because the linked records have all the same hash value, and the legitimacy invariant, for if the removed record was the head of its list, replacing it by its successor still makes the occupant of its position legitimate.
     We need, however, to point 'replacement.prev' (previously pointed to 'index') to 'to_erase.prev' (it could be pointing to 'to_erase''s predecessor or to null, but it is correctly pointed, by the list invariant).
     Next, in lines 316-317, we insert 'to_erase.next' in the empty positions list, by updating 'empty_list_head' to the new first empty position and writing the empty record to the position previously held by the successor of the removed record.
     In lines 320-324, we possibly correct the backwards way of 'replacement''s list and write the modifications to the file.
@@ -138,7 +137,7 @@ Maintenance:
     We can proceed with the insertion without worrying about duplicates, then.
     The illegitimacy of the record in 'key_hash' position satisfies the condition for the 'else if' in lines 200-229.
     We relocate the record currently in place to preserve the legitimacy invariant.
-    Since the record being relocated here is illegitimate, by the legitimacy invariant, we know that it has a predecessor in its list.
+    Since the record being relocated here is illegitimate, by the legitimacy invariant and the list invariant, we know that it has a predecessor in its list.
     In lines 204-206, we adjust its predecessor's 'next' pointer to the relocated record's new position ('empty_list_head'), and write it to the file.
     In lines 209-213, we possibly do the inverse adjustment to the relocated record's successor, if it exists.
     We save the current 'empty_list_head' and remove it of the empty positions list through an 'empty_list_delete' call in lines 219-220.
@@ -150,7 +149,7 @@ Maintenance:
     This is enough to make both the list and file invariants hold.
     Now we have a record hashing to 'key_hash' position in the file.
     Since its position is 'key_hash', the legitimacy invariant holds.
-    The record emptied with the relocation is filled and the list invariant also holds.
+    The record emptied with the relocation is filled and the empty list invariant also holds.
     All invariants hold for this case of insertion, then.
 
     When the record in position 'in_place' is legitimate, we first must assert that no record in the file has key 'to_insert.key'.
@@ -159,17 +158,15 @@ Maintenance:
 
     If the record is not yet in the file, we must insert it there.
     We choose to relocate 'in_place' to the first empty position and to put 'to_insert' in its place, as in a linked list insertion.
-    In line 233-234, we point 'to_insert.next' to 'empty_list_head', since 'in_place' will be relocated there, and 'to_insert.prev' to null, as it will be its list's new head.
+    In lines 233-234, we point 'to_insert.next' to 'empty_list_head', since 'in_place' will be relocated there, and 'to_insert.prev' to null, as it will be its list's new head.
 
     The relocation of 'in_place' checks if there is a successor in this list (lines 237-241); if that is the case, the successor's 'prev' is pointed to 'empty_list_head', the position 'in_place' will occupy by the end of this 'insert' call.
-    This suffices to guarantee forward navigability in the list, since, by the list invariant, the remainder of the list was correct and 'in_place' was the only moved record.
     Lines 244-248 remove 'empty_list_head' of the empty positions list, saving its appointed value to later use.
-    No further alterations are made to the empty positions list, and the empty list invariant holds.
     Line 251 points 'in_place.prev' to the list's new head, following the decision made above.
     Lines 254-255 write both records to the file.
 
     The record that should be inserted is inserted and all the previous records in the file remain there; the file invariant holds.
-    We have also guaranteed forward and backwards navigability to this list and no other lists were affected, so the list invariant holds.
+    We have also guaranteed forward and backwards navigability to the list of 'key_hash' and no other lists were affected, so the list invariant holds.
     The record in 'key_hash' position is still legitimate and the position to which we moved 'in_place' was empty.
     Therefore, the legitimacy invariant holds.
     All invariants hold and 'insert' is correct.
