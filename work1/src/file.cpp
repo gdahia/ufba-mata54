@@ -255,7 +255,7 @@ void File::insert(Record &to_insert, std::ostream &stream) {
     write(to_insert, key_hash);
 
   } else {
-    stream << "chave ja existente " << to_insert.key << std::endl;
+    stream << "chave ja existente: " << to_insert.key << std::endl;
   }
 }
 
@@ -272,7 +272,7 @@ void File::lookup(const unsigned int key, std::ostream &stream) {
            << in_place.name << std::endl
            << in_place.age << std::endl;
   } else
-    stream << "chave nao encontrada " << key << std::endl;
+    stream << "chave nao encontrada: " << key << std::endl;
 }
 
 void File::remove(const unsigned int key, std::ostream &stream) {
@@ -285,7 +285,7 @@ void File::remove(const unsigned int key, std::ostream &stream) {
 
   // checks if search was successful
   if (index < 0) {
-    stream << "chave nao encontrada " << key << std::endl;
+    stream << "chave nao encontrada: " << key << std::endl;
   } else {
     Record to_erase = read(index);
 
