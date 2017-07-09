@@ -158,7 +158,7 @@ void File::empty_list_delete(const Record &to_delete) {
   }
 }
 
-void File::relocate(Record &to_relocate) {
+void File::relocate(const Record &to_relocate) {
   /* relocates record 'to_relocate' to next empty position; 'to_relocate' is
   guaranteed to have a valid 'prev' pointer.
   - 'to_relocate': reference of record to be relocated */
