@@ -2,6 +2,7 @@
 #define BTREE_HPP
 
 #include <algorithm>
+#include <fstream>
 #include <vector>
 
 namespace b {
@@ -38,6 +39,19 @@ struct node {
     // move median up
     keys.insert(keys.begin() + i, children[i]->keys[t - 1]);
     children[i]->keys.pop_back();
+  }
+
+  void print(std::ostream& stream, const int level) const {
+    for (int i = 0; i < level; i++) stream << " ";
+    stream << "[";
+    int n = keys.size();
+    for (int i = 0; i < n; i++) {
+      stream << keys[i];
+      if (i < n - 1) stream << " ";
+    }
+    stream << "]" << std::endl;
+    n = children.size();
+    for (int i = 0; i < n; i++) children[i]->print(stream, level + 1);
   }
 
   const int t;
@@ -77,6 +91,8 @@ class tree {
 
     insert(root, key);
   }
+
+  void print(std::ostream& stream) const { root->print(stream, 0); }
 
  private:
   void insert(node<T>* x, const T& key) {
