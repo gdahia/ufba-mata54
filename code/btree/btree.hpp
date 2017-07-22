@@ -7,20 +7,20 @@
 namespace b {
 
 template <typename T>
-struct Node {
-  Node(const int t) : t(t) {
+struct node {
+  node(const int t) : t(t) {
     keys.reserve(t);
     children.reserve(t);
   }
 
-  ~Node() {
+  ~node() {
     const int len = children.size();
     for (int i = 0; i < len; i++) delete children[i];
   }
 
   void split_child(const int i) {
     // create right child
-    Node<T>* right = new Node(t);
+    node<T>* right = new node<T>(t);
     children.insert(children.begin() + i + 1, right);
 
     // copy keys and children to right child
@@ -42,21 +42,35 @@ struct Node {
 
   const int t;
   std::vector<T> keys;
-  std::vector<Node<T>*> children;
+  std::vector<node<T>*> children;
 };
 
 template <typename T>
-class Tree {
+class tree {
  public:
-  Tree(const int t) : t(t) { root = new Node<T>(t); }
+  tree(const int t) : t(t) { root = new node<T>(t); }
 
-  ~Tree() { delete root; }
+  ~tree() { delete root; }
+
+  bool search(const T& key) const {
+    typename std::vector<T>::iterator it =
+        std::lower_bound(root->keys.begin(), root->keys.end(), key);
+
+    if (it != root->keys.end() && *it == key)
+      return true;
+    else if (root->children.empty())
+      return false;
+    else {
+      const int i = it - root->keys.begin();
+      return search(root->children[i], key);
+    }
+  }
 
   void insert(const T& key) {
     // if root is full, create new root and split old root
     if (root->keys.size() == 2 * t - 1) {
-      Node<T>* r = root;
-      root = new Node<T>(t);
+      node<T>* r = root;
+      root = new node<T>(t);
       root->children.push_back(r);
       root->split_child(0);
     }
@@ -65,37 +79,54 @@ class Tree {
   }
 
  private:
-  void insert(Node<T>* node, const T& key) {
-    // if node is leaf, insert in it
+  void insert(node<T>* x, const T& key) {
+    // if x is leaf, insert in it
     // otherwise, continue insertion downwards
-    if (node->children.empty()) {
-      // find key position in node
+    if (x->children.empty()) {
+      // find key position in x
       typename std::vector<T>::iterator it =
-          std::upper_bound(node->keys.begin(), node->keys.end(), key);
+          std::upper_bound(x->keys.begin(), x->keys.end(), key);
 
-      node->keys.insert(it, key);
+      x->keys.insert(it, key);
 
     } else {
       // find proper child
       typename std::vector<T>::iterator it =
-          std::upper_bound(node->keys.begin(), node->keys.end(), key);
-      int i = it - node->keys.begin();
-      Node<T>* child = node->children[i];
+          std::upper_bound(x->keys.begin(), x->keys.end(), key);
+      int i = it - x->keys.begin();
+      node<T>* child = x->children[i];
 
       // if proper child is full, split it
       if (child->keys.size() == 2 * t - 1) {
-        node->split_child(i);
+        x->split_child(i);
 
         // find out which of the new children is proper
-        if (key > node->keys[i]) i++;
+        if (key > x->keys[i]) i++;
       }
 
-      insert(node->children[i], key);
+      insert(x->children[i], key);
+    }
+  }
+
+  bool search(node<T>* x, const T& key) const {
+    typename std::vector<T>::iterator it =
+        std::lower_bound(x->keys.begin(), x->keys.end(), key);
+    if (x->children.empty())
+      return (it != x->keys.end() && *it == key);
+    else {
+      if (it == x->keys.end())
+        return search(x->children.back(), key);
+      else if (*it == key)
+        return true;
+      else {
+        const int i = it - x->keys.begin();
+        return search(x->children[i], key);
+      }
     }
   }
 
   const int t;
-  Node<T>* root;
+  node<T>* root;
 };
 }
 
