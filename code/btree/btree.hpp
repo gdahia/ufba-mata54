@@ -25,16 +25,17 @@ struct node {
     children.insert(children.begin() + i + 1, right);
 
     // copy keys and children to right child
-    std::copy(children[i]->keys.begin() + t + 1, children[i]->keys.end(),
+    std::copy(children[i]->keys.begin() + t, children[i]->keys.end(),
               std::back_inserter(right->keys));
-    std::copy(children[i]->children.begin() + t + 1,
-              children[i]->children.end(), std::back_inserter(right->children));
+    std::copy(children[i]->children.begin() + t, children[i]->children.end(),
+              std::back_inserter(right->children));
 
     // erase right child's keys and children from left child
-    children[i]->keys.erase(children[i]->keys.begin() + t + 1,
+    children[i]->keys.erase(children[i]->keys.begin() + t,
                             children[i]->keys.end());
-    children[i]->children.erase(children[i]->children.begin() + t + 1,
-                                children[i]->children.end());
+    if (!children[i]->children.empty())
+      children[i]->children.erase(children[i]->children.begin() + t,
+                                  children[i]->children.end());
 
     // move median up
     keys.insert(keys.begin() + i, children[i]->keys[t - 1]);
@@ -49,8 +50,8 @@ struct node {
       stream << keys[i];
       if (i < n - 1) stream << " ";
     }
-    stream << "]" << std::endl;
     n = children.size();
+    stream << "]" << std::endl;
     for (int i = 0; i < n; i++) children[i]->print(stream, level + 1);
   }
 
