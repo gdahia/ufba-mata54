@@ -123,8 +123,8 @@ struct node {
 
       } else if (children[i + 1]->keys.size() >= t) {
         // get key from child right of key
-        const T replacement = children[i]->keys[0];
-        children[i]->erase(replacement);
+        const T replacement = children[i + 1]->keys[0];
+        children[i + 1]->erase(replacement);
         *it = replacement;
 
       } else {
@@ -133,49 +133,69 @@ struct node {
         // recursively delete key from newly merged child
         children[i]->erase(key);
       }
-    } else if (!children.empty()) {
-      // maintain every node with at lest t keys
-      // while recursing down the tree
-      if (children[i]->keys.size() == t - 1) {
-        if (children[i + 1]->keys.size() >= t) {
-          // descend a key from current node to recursion node
-          children[i]->keys.push_back(*it);
+    } else {
+      if (!children.empty()) {
+        // maintain every node with at lest t keys
+        // while recursing down the tree
+        if (children[i]->keys.size() >= t)
+          children[i]->erase(key);
+        else {
+          if (it != keys.end() && children[i + 1]->keys.size() >= t) {
+            // descend a key from current node to recursion node
+            children[i]->keys.push_back(*it);
 
-          // replace descended key with leftmost key of
-          // recursion node's right sibiling
-          std::swap(children[i + 1]->keys[0], *it);
-          children[i + 1]->keys.erase(keys.begin());
+            // replace descended key with leftmost key of
+            // recursion node's right sibiling
+            std::swap(children[i + 1]->keys[0], *it);
+            children[i + 1]->keys.erase(children[i + 1]->keys.begin());
 
-          if (!children[i]->children.empty()) {
-            // move right sibiling's leftmost child to recursion node
-            children[i]->children.push_back(children[i + 1]->children[0]);
-            children[i + 1]->children.erase(children.begin());
+            if (!children[i]->children.empty()) {
+              // move right sibiling's leftmost child to recursion node
+              children[i]->children.push_back(children[i + 1]->children[0]);
+              children[i + 1]->children.erase(
+                  children[i + 1]->children.begin());
+            }
+
+            // continue recursive deletion
+            children[i]->erase(key);
+
+          } else if (i > 0 && children[i - 1]->keys.size() >= t) {
+            // descend a key from current node to recursion node
+            children[i]->keys.insert(children[i]->keys.begin(), *(it - 1));
+
+            // replace descended key with rightmost key of
+            // recursion node's left sibiling
+            std::swap(children[i - 1]->keys.back(), *(it - 1));
+            children[i - 1]->keys.pop_back();
+
+            if (!children[i]->children.empty()) {
+              // move left sibiling's rightmost child to recursion node
+              children[i]->children.insert(children[i]->children.begin(),
+                                           children[i - 1]->children.back());
+              children[i - 1]->children.pop_back();
+            }
+
+            // continue recursive deletion
+            children[i]->erase(key);
+
+          } else if (it != keys.end()) {
+            // merge recursion node with its right sibiling,
+            // descending a key from the current node
+            merge_right_left(i);
+
+            // continue recursive deletion
+            children[i]->erase(key);
+
+          } else if (i > 0) {
+            // merge recursion node with its left sibiling
+            // descending a key from the current node
+            merge_right_left(i - 1);
+
+            // continue recursive deletion
+            children[i - 1]->erase(key);
           }
-
-        } else if (i > 0 && children[i - 1]->keys.size() >= t) {
-          // descend a key from current node to recursion node
-          children[i]->keys.insert(children[i]->keys.begin(), *(it - 1));
-
-          // replace descended key with rightmost key of
-          // recursion node's left sibiling
-          std::swap(children[i - 1]->keys.back(), *(it - 1));
-          children[i - 1]->keys.pop_back();
-
-          if (!children[i]->children.empty()) {
-            // move left sibiling's rightmost child to recursion node
-            children[i]->children.insert(children[i]->children.begin(),
-                                         children[i - 1]->children.back());
-            children[i - 1]->children.pop_back();
-          }
-
-        } else {
-          // merge recursion node with its right sibiling,
-          // descending a key from the current node
-          merge_right_left(i);
         }
       }
-
-      children[i]->erase(key);
     }
   }
 
@@ -231,13 +251,13 @@ class tree {
   }
 
   void erase(const T& key) {
-    typename std::vector<T>::iterator it =
-        std::lower_bound(root->keys.begin(), root->keys.end(), key);
-    if (it != root->keys.end() && *it == key) {
-      // root deletion
-    } else if (!root->children.empty()) {
-      const int i = it - root->keys.begin();
-      root->children[i]->erase(key);
+    root->erase(key);
+    // if root is emptied by deletion, make left child new root
+    if (root->keys.empty() && !root->children.empty()) {
+      node<T>* new_root = root->children[0];
+      root->children.clear();
+      delete root;
+      root = new_root;
     }
   }
 

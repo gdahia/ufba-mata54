@@ -9,7 +9,9 @@ int main() {
   b::tree<int> tree(t);
   int x;
   while (cin >> x) {
+    cout << "inserting " << x << endl;
     tree.insert(x);
     tree.print(cout);
+    cout << endl;
   }
 }
