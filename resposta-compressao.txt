@@ -1,0 +1,65 @@
+1. (a)
+A: 1
+B: 001
+C: 01001
+D: 000
+E: 01001
+F: 01000
+G: 0101
+H: 011
+
+(b)
+A: 0000
+B: 0001
+C: 101
+D: 100
+E: 11
+F: 011
+G: 001
+H: 010
+
+(c)
+A: 001
+B: 11
+C: 100
+D: 0000
+E: 101
+F: 0001
+G: 01
+
+(d)
+A: 0000
+B: 11
+C: 100
+D: 0001
+E: 101
+F: 01
+G: 001
+
+2.
+P(a) = 11
+P(b) = 6
+P(c) = 2
+P(d) = 3
+
+a: 1
+b: 01
+c: 000
+d: 001
+
+3. A frase e falsa.
+Suponha, por contradicao, que uma arvore binaria representando uma codificacao livre de prefixo seja otima e possua, ao mesmo tempo, pelo menos um no interno v com exatamente um filho. 
+Mostraremos como construir uma arvore que representa um codigo melhor do que a arvore atual a partir dela, contradizendo a hipotese de que a arvore atual e otima.
+Seja v um no interno da arvore que possui exatamente um filho.
+Como v possui um filho, existe pelo menos uma folha que e descendente de v.
+Seja d uma tal folha e p seu pai na arvore.
+Caso p seja v, simplesmente substituimos v por d na arvore.
+Como d e folha, d representa um simbolo.
+Ao colocar d na posicao de v, subimos d em um nivel e seu codigo ficou um simbolo mais curto.
+Como nenhuma das outras codificacoes foi alterada, a arvore modificada representa um codigo superior ao da arvore anterior; contradicao.
+Caso p seja diferente de v, fazemos de d um filho de v.
+Como p nao era v, d esta abaixo de v em pelo menos dois niveis.
+Assim, tornar d filho de v faz com que o codigo de d fique menor em pelo menos um simbolo.
+Como foi visto anteriormente, isso representa uma melhoria no codigo da arvore.
+Contradicao.
+Logo, uma arvore binaria representando uma codificacao livre de prefixo nao pode possuir nos internos com apenas um filho.
