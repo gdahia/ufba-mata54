@@ -10,10 +10,8 @@ E: 4
 P: 3
 
 delta_2
-4: 1
-3: 3
-2: 6
-1: 7
+1|  2|  3|  4
+7   6   3   1
 
 A_ARARA_NA_ARVORE_NAO_PARA
 $$$x
@@ -42,10 +40,8 @@ S: 4
 E: 4
 
 delta_2
-4: 1
-3: 3
-2: 6
-4: 7
+1|  2|  3|  4|
+7   6   3   1
 
 NO_CAMPO_MONTA-SE_NO_ACAMPAMENTO_A_CAMA
 $$$x
@@ -63,4 +59,135 @@ $$$x
 O algoritmo ingenuo faz 43 comparacoes.
 
 3.
-a)
+(a)
+delta
+    0|  1|  2|  3|  4|  5|  6|  7|  8
+a|  1   2   2   4   5   2   7   8   2
+b|  0   0   3   0   0   6   0   0   6
+
+aabaaabaababaabaaabaabaa
+aabaax--
+    --baabax
+            aabaax--
+                --baabaa
+
+(b)
+pi
+1|  2|  3|  4|  5|  6|  7|  8
+0   1   0   1   2   3   4   5 
+
+aabaaabaababaabaaabaabaa
+aabaax--
+   --x-----
+    -abaabax
+       ----x---
+          -x------
+           x-------
+            aabaax--
+               --x-----
+                -abaabaa
+
+(c)
+delta_1
+a: 0
+b: 2
+
+delta_2
+1|  2|  3|  4|  5|  6|  7|  8
+10  9   8  10   9   8   2   1 
+
+aabaaabaababaabaaabaabaa
+------xa
+ --xaabaa
+    -------x
+      ---xabaa
+            ------xa
+             --xaabaa
+                aabaabaa 
+
+4.
+(a)
+  0|  1|  2|  3|  4|  5|  6|  7
+x|1   1   3   1   5   6   1   3
+y|0   2   0   4   0   4   7   0
+
+(b)
+xxyxyxyxxyxyxxyx
+x$-----
+ -yxyx$-
+   ----xxy
+        --xyxxy
+             ---$
+
+(c)
+xxyxyxyxxyxyxxyx
+x$-----
+ xyxyx$-
+  $------
+   xyxyxxy
+    $------
+     xyx$---
+      $------
+       x$-----
+        xyxyxxy
+         $------
+          xyx$---
+           $------
+
+5.
+(a)
+  0|  1|  2|  3|  4|  5|  6|  7
+a|1   2   2   1   5   6   7   2
+b|0   0   3   0   0   0   3   3
+c|0   0   0   4   0   0   0   0
+
+ aabaaaaaabbaabcbcaabcaaa
+0123222222301234001234567
+
+(b)
+delta_1
+a: 0
+b: 4
+c: 3
+
+delta_2
+ 1|  2|  3|  4|  5|  6|  7
+12  11  10   9   3   3   1
+
+aabaaaaaabbaabcbcaabcaaa
+---xaaa
+      ----xaa
+        ------x
+           -----xa
+                 aabcaaa
+
+6.
+  0|  1|  2|  3|  4|  5|  6|  7
+a|1   2   3   3   5   6   7   3
+b|0   0   0   4   0   0   0   4
+
+ aaabaabababaaaaaababaaabaabbbaabaaabaaa
+0123456010101233334501234560001201234567
+
+7.
+delta_1
+a: 0
+b: 3
+
+delta_2
+1|  2|  3|  4|  5|  6|  7
+10  9   8   7   3   3   1
+
+aaabaabababaaaaaababaaabaabbbaabaaabaaa
+------x
+   -----xa
+     -----xa
+       -xabaaa
+           ------x
+              -----xa
+                -xabaaa
+                    ------x
+                       -----xa
+                         ------x
+                            xaabaaa
+                                aaabaaa
