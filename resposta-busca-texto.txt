@@ -152,13 +152,14 @@ c: 3
 
 delta_2
  1|  2|  3|  4|  5|  6|  7
-12  11  10   9   3   3   1
+11  10   9   8   3   3   1
 
 aabaaaaaabbaabcbcaabcaaa
 ---xaaa
-      ----xaa
+     -----xa
         ------x
            -----xa
+             ------x
                  aabcaaa
 
 6.
