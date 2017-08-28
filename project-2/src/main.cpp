@@ -1,11 +1,14 @@
 #include <iostream>
 #include <string>
 
+#include "dictionary.hpp"
+
 int main() {
-  char opt;
-  std::string word;
+  Dictionary dict;
 
   // handle input / output
+  char opt;
+  std::string word;
   while (std::cin >> opt, opt != 'e') {
     switch (opt) {
       case 'i':
@@ -14,7 +17,7 @@ int main() {
 
         for (int i = 0; i < n; i++) {
           std::cin >> word;
-          // insert
+          dict.insert(word);
         }
 
         break;
@@ -23,7 +26,7 @@ int main() {
         // query correctnes
         break;
       case 'f':
-        // frequency
+        dict.print_frequencies(std::cout);
         break;
       case 'p':
         std::cin >> word;

@@ -20,9 +20,12 @@ class Trie {
 
   void insert(const std::string&, const int);
   std::vector<int> query(const std::string&);
+  std::vector<int> walk();
 
  private:
   trie::node* root;
+
+  std::vector<int> recursive_walk(trie::node*);
 };
 
 #endif

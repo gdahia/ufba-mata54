@@ -1,5 +1,7 @@
 #include "trie.hpp"
 
+#include <algorithm>
+
 using namespace trie;
 
 node::~node() {
@@ -45,4 +47,26 @@ std::vector<int> Trie::query(const std::string& word) {
   }
 
   return x->indices;
+}
+
+std::vector<int> Trie::walk() {
+  node* x = root;
+  return recursive_walk(x);
+}
+
+std::vector<int> Trie::recursive_walk(node* x) {
+  // sort nodes by char
+  x->nodes.sort(
+      [](const std::pair<char, node*>& a, const std::pair<char, node*>& b) {
+        return a.first < b.first;
+      });
+
+  // recursively obtain indices for child nodes
+  std::vector<int> ret = x->indices;
+  for (const std::pair<char, node*> y : x->nodes) {
+    std::vector<int> sub_ret = recursive_walk(y.second);
+    std::copy(sub_ret.begin(), sub_ret.end(), std::back_inserter(ret));
+  }
+
+  return ret;
 }
