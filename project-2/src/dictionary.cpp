@@ -18,15 +18,16 @@ Dictionary::Dictionary() {
     words.push_back(word);
 
     // read ith word frequency from its file
-    input.open(std::to_string(i) + "-freq.dat");
+    std::ifstream freq_input(std::to_string(i) + "-freq.dat");
     int abs_frequency;
-    input >> abs_frequency;
+    freq_input >> abs_frequency;
     abs_frequencies.push_back(abs_frequency);
 
     // read ith word relative frequencies to all predecessors
-    for (int j = 0; j < i; j++) {
+    for (int j = 0; j <= i; j++) {
       // read i-j relative frequency
-      input.open(std::to_string(i) + "-" + std::to_string(j) + "-freq.dat");
+      std::ifstream input(std::to_string(i) + "-" + std::to_string(j) +
+                          "-freq.dat");
       if (input) {
         int rel_frequency;
         input >> rel_frequency;
