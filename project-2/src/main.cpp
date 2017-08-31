@@ -14,23 +14,30 @@ int main() {
       case 'i':
         int n;
         std::cin >> n;
-
         for (int i = 0; i < n; i++) {
           std::cin >> word;
           dict.insert(word);
         }
-
         break;
+
       case 'd':
         std::cin >> word;
-        // query correctnes
+        if (!dict.type_word(word, std::cout)) {
+          std::cin >> word;
+
+          // treat retyped word as either insertion or correction
+          int index = dict.query_correctness(word);
+          if (index < 0) index = dict.insert(word);
+          dict.update_word_sequencing(index);
+        }
         break;
+
       case 'f':
         dict.print_frequencies(std::cout);
         break;
       case 'p':
         std::cin >> word;
-        // query next word
+        dict.print_followup_frequencies(word, std::cout);
         break;
     }
   }

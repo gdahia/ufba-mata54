@@ -5,7 +5,7 @@
 
 Dictionary::Dictionary() { first_typed_word = true; }
 
-void Dictionary::insert(const std::string& word) {
+int Dictionary::insert(const std::string& word) {
   const int index = words.size();
   words.push_back(word);
   abs_frequencies.push_back(0);
@@ -19,6 +19,8 @@ void Dictionary::insert(const std::string& word) {
     partial_words.insert(partial_word + word.substr(i + 1), index);
     partial_word += word[i];
   }
+
+  return index;
 }
 
 void Dictionary::print_frequencies(std::ostream& os) {
@@ -36,7 +38,7 @@ int Dictionary::query_correctness(const std::string& word) const {
     return whole_query[0];
 }
 
-std::vector<std::string> Dictionary::get_most_frequent_following_words(
+std::vector<int> Dictionary::get_most_frequent_followups(
     const int index) const {
   // find said words
   std::vector<int> most_frequent_words_indices;
@@ -63,12 +65,7 @@ std::vector<std::string> Dictionary::get_most_frequent_following_words(
     }
   }
 
-  // retrieve strings for word indices
-  std::vector<std::string> most_frequent_words;
-  for (int i : most_frequent_words_indices)
-    most_frequent_words.push_back(words[i]);
-
-  return most_frequent_words;
+  return most_frequent_words_indices;
 }
 
 void Dictionary::update_word_sequencing(const int index) {
@@ -79,7 +76,7 @@ void Dictionary::update_word_sequencing(const int index) {
   last_typed_word_index = index;
 }
 
-std::vector<std::string> Dictionary::get_most_plausible_corrections(
+std::vector<int> Dictionary::get_most_plausible_corrections(
     const std::string& word) const {
   // maintain number of times each substring appears
   const int n_words = word.size();
@@ -138,10 +135,44 @@ std::vector<std::string> Dictionary::get_most_plausible_corrections(
     }
   }
 
-  // retrieve words
-  std::vector<std::string> most_plausible_corrections;
-  for (int i : most_plausible_corrections_indices)
-    most_plausible_corrections.push_back(words[i]);
+  return most_plausible_corrections_indices;
+}
 
-  return most_plausible_corrections;
+bool Dictionary::type_word(const std::string& word, std::ostream& os) {
+  const int index = query_correctness(word);
+  if (index >= 0) {
+    // print followup suggestions
+    os << "proximas palavras:";
+    for (const int i : get_most_frequent_followups(index))
+      os << " " << words[i];
+    os << std::endl;
+
+    // update followup frequencies
+    update_word_sequencing(index);
+
+    return true;
+  } else {
+    // print correction suggestions
+    os << "palavra desconhecida. possiveis correcoes:";
+    for (const int i : get_most_plausible_corrections(word))
+      os << " " << words[i];
+    os << std::endl;
+
+    return false;
+  }
+}
+
+void Dictionary::print_followup_frequencies(const std::string& word,
+                                            std::ostream& os) const {
+  const int index = query_correctness(word);
+  if (index >= 0) {
+    const std::vector<int> followup_indices =
+        get_most_frequent_followups(index);
+    const std::map<int, int>& relative_frequency = relative_frequencies[index];
+    for (const int i : followup_indices) {
+      auto it = relative_frequency.find(i);
+      if (it != relative_frequency.cend())
+        os << words[i] << " " << it->second << std::endl;
+    }
+  }
 }
