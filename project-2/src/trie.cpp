@@ -32,8 +32,8 @@ void Trie::insert(const std::string& word, const int index) {
   x->indices.push_back(index);
 }
 
-std::vector<int> Trie::query(const std::string& word) {
-  node* x = root;
+std::vector<int> Trie::query(const std::string& word) const {
+  node const* x = root;
   for (char c : word) {
     bool found = false;
     for (const std::pair<char, node*>& y : x->nodes)

@@ -19,7 +19,7 @@ class Trie {
   ~Trie();
 
   void insert(const std::string&, const int);
-  std::vector<int> query(const std::string&);
+  std::vector<int> query(const std::string&) const;
   std::vector<int> walk();
 
  private:
