@@ -1,16 +1,67 @@
 #include "dictionary.hpp"
 
 #include <algorithm>
+#include <fstream>
 #include <queue>
 
-Dictionary::Dictionary() { first_typed_word = true; }
+Dictionary::Dictionary() {
+  first_typed_word = true;
+
+  // restore dictionary state
+  for (int i = 0;; i++) {
+    // read ith word from its file
+    std::ifstream input(std::to_string(i) + "-word.dat");
+    if (!input) break;
+    std::string word;
+    char c;
+    while (input >> c) word += c;
+    words.push_back(word);
+
+    // read ith word frequency from its file
+    input.open(std::to_string(i) + "-freq.dat");
+    int abs_frequency;
+    input >> abs_frequency;
+    abs_frequencies.push_back(abs_frequency);
+
+    // read ith word relative frequencies to all predecessors
+    for (int j = 0; j < i; j++) {
+      // read i-j relative frequency
+      input.open(std::to_string(i) + "-" + std::to_string(j) + "-freq.dat");
+      if (input) {
+        int rel_frequency;
+        input >> rel_frequency;
+        if (rel_frequency) relative_frequencies[i][j] = rel_frequency;
+      }
+
+      // read j-i relative frequency
+      input.open(std::to_string(j) + "-" + std::to_string(i) + "-freq.dat");
+      if (input) {
+        int rel_frequency;
+        input >> rel_frequency;
+        if (rel_frequency) relative_frequencies[j][i] = rel_frequency;
+      }
+    }
+
+    // rebuild tries
+    whole_words.insert(word, i);
+
+    std::string partial_word;
+    const int len = word.size();
+    for (int j = 0; j < len; j++) {
+      partial_words.insert(partial_word + word.substr(j + 1), i);
+      partial_word += word[j];
+    }
+  }
+}
 
 int Dictionary::insert(const std::string& word) {
+  // add word to database
   const int index = words.size();
   words.push_back(word);
   abs_frequencies.push_back(0);
   relative_frequencies.push_back(std::map<int, int>());
 
+  // add word to tries
   whole_words.insert(word, index);
 
   std::string partial_word;
@@ -19,6 +70,14 @@ int Dictionary::insert(const std::string& word) {
     partial_words.insert(partial_word + word.substr(i + 1), index);
     partial_word += word[i];
   }
+
+  // create word file
+  std::ofstream word_file(std::to_string(index) + "-word.dat");
+  word_file << word;
+
+  // create frequency file
+  std::ofstream freq_file(std::to_string(index) + "-freq.dat");
+  freq_file << 0;
 
   return index;
 }
@@ -71,9 +130,22 @@ std::vector<int> Dictionary::get_most_frequent_followups(
 void Dictionary::update_word_sequencing(const int index) {
   if (first_typed_word)
     first_typed_word = false;
-  else
-    relative_frequencies[last_typed_word_index][index]++;
+  else {
+    // update relative frequency in dataset
+    const int relative_frequency =
+        ++relative_frequencies[last_typed_word_index][index];
+
+    // update/create relative frequncy file
+    std::ofstream relfreq_file(std::to_string(last_typed_word_index) + "-" +
+                               std::to_string(index) + ".dat");
+    relfreq_file << relative_frequency;
+  }
   last_typed_word_index = index;
+  abs_frequencies[index]++;
+
+  // update freqs in files
+  std::ofstream freq_file(std::to_string(index) + "-freq.dat");
+  freq_file << abs_frequencies[index];
 }
 
 std::vector<int> Dictionary::get_most_plausible_corrections(
