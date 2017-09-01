@@ -24,6 +24,14 @@
       \item Não há limite para o número de arquivos criados.
     \end{itemize}
 
+    \subsection{Trie}
+    \emph{Tries} são implementadas da seguinte maneira: cada nó possui uma lista de índices e uma lista de pares $<c, u>$, onde $c$ é um caractere e $u$ é um nó de Trie.
+    Se em um nó $v$ há um par $<c, u>$, então existe a transição de $v$ para $u$ mediante a leitura de $c$. 
+    No contexto de Tries, $r_T$ é a raiz da Trie $T$ -- quando claro a partir do contexto, será escrito apenas $r$. 
+
+    Uma consulta a uma Trie $T$ é representada por $T(r, p)$, $p$ palavra, e tem seu significado definido de maneira recursiva: $T(v, \epsilon)$ corresponde a lista de índices de $v$, e $T(v, aw)$ é $T(u, w)$, se em $v$ há o par $<a, u>$, e $\emptyset$, caso contrário.
+
+    Inserir o par $<p, i>$ em uma Trie $T$, onde $p$ é uma palavra e $i$ é um índice, corresponde a criar as estruturas necessárias para que, se antes dessa inserção $T(r, p) = L$, após ela $T(r, p) = L \cup i$.
 
   \section{Base de palavras}
     Cada vez que uma palavra $p$ é inserida na base de palavras, seja via uma operação de inserção, seja via uma operação de digitação, é atribuido a ela um identificador númerico inteiro $i_p$ no intervalo $[0, n - 1]$.
@@ -44,4 +52,9 @@
     No começo de cada execução do sistema, as palavras e seus identificadores são carregados na memória principal através da leitura sequencial dos $n$ arquivos de palavra existentes.
     Quando da leitura do arquivo da palavra $p$, seu arquivo de frequência e, para todo $i_s < i_p$, os arquivos $s$-$p$ e $p$-$s$ serão também carregados na memória principal.
     Isso é suficiente para garantir a persistência dos dados.
+
+    \subsection{Consulta de palavras}
+    Para realizar a consulta se uma determinada palavra está ou não presente na base de palavras, é mantida uma Trie $T$.
+    Quando uma palavra $p$ é inserida no banco de palavras ou carregada da memória secundária, inserimos $<p, i_p>$ em $T$.
+    Para determinar se $p$ é uma palavra correta, basta verificar se $T(r, p)~\ne~\emptyset$.
 \end{document}
