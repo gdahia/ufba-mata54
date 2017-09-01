@@ -153,38 +153,35 @@ void Dictionary::update_word_sequencing(const int index) {
 
 std::vector<int> Dictionary::get_most_plausible_corrections(
     const std::string& word) const {
-  // maintain number of times each substring appears
-  const int n_words = words.size();
-  std::vector<int> subwords_frequencies(n_words, 0);
-
   // query substrings of words in substring of dictionary words
+  // taking only those that appear most frequently
   const int len = word.size();
   std::string subword;
-  for (int i = 0; i < len; i++) {
-    std::vector<int> subword_query =
-        partial_words.query(subword + word.substr(i + 1));
-    for (int index : subword_query) subwords_frequencies[index]++;
-    subword += word[i];
-  }
-
-  // filter the 3 words that differ at most one char and appeared most
-  // frequently
   std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>,
                       std::greater<std::pair<int, int>>>
       filtered_indices;
-  for (int i = 0; i < n_words; i++)
-    if (subwords_frequencies[i] == len - 1 &&
-        (filtered_indices.size() < 3 ||
-         filtered_indices.top().first < abs_frequencies[i])) {
-      filtered_indices.emplace(abs_frequencies[i], i);
-      if (filtered_indices.size() > 3) filtered_indices.pop();
-    }
+  for (int i = 0; i < len; i++) {
+    // query substring
+    std::vector<int> subword_query =
+        partial_words.query(subword + word.substr(i + 1));
+
+    // update three corrections as most frequent possible
+    for (const int index : subword_query)
+      if (filtered_indices.size() < 3 ||
+          filtered_indices.top().first < abs_frequencies[index]) {
+        filtered_indices.emplace(abs_frequencies[index], index);
+        if (filtered_indices.size() > 3) filtered_indices.pop();
+      }
+
+    // update string
+    subword += word[i];
+  }
 
   // retrieve corrections indices
   std::vector<int> most_plausible_corrections_indices;
   while (!filtered_indices.empty()) {
     int index, frequency;
-    std::tie(index, frequency) = filtered_indices.top();
+    std::tie(frequency, index) = filtered_indices.top();
     filtered_indices.pop();
     most_plausible_corrections_indices.push_back(index);
   }
@@ -195,6 +192,7 @@ std::vector<int> Dictionary::get_most_plausible_corrections(
               most_plausible_corrections_indices.back());
 
   // complete 3 corrections, if possible
+  const int n_words = words.size();
   if (most_plausible_corrections_indices.size() < 3) {
     for (int i = 0; i < n_words; i++) {
       bool already_suggested = false;
