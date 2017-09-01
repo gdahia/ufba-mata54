@@ -24,6 +24,7 @@ Dictionary::Dictionary() {
     abs_frequencies.push_back(abs_frequency);
 
     // read ith word relative frequencies to all predecessors
+    relative_frequencies.push_back(std::map<int, int>());
     for (int j = 0; j <= i; j++) {
       // read i-j relative frequency
       std::ifstream input(std::to_string(i) + "-" + std::to_string(j) +
@@ -35,10 +36,11 @@ Dictionary::Dictionary() {
       }
 
       // read j-i relative frequency
-      input.open(std::to_string(j) + "-" + std::to_string(i) + "-freq.dat");
-      if (input) {
+      std::ifstream rev_input(std::to_string(j) + "-" + std::to_string(i) +
+                              "-freq.dat");
+      if (rev_input) {
         int rel_frequency;
-        input >> rel_frequency;
+        rev_input >> rel_frequency;
         if (rel_frequency) relative_frequencies[j][i] = rel_frequency;
       }
     }
@@ -138,7 +140,7 @@ void Dictionary::update_word_sequencing(const int index) {
 
     // update/create relative frequncy file
     std::ofstream relfreq_file(std::to_string(last_typed_word_index) + "-" +
-                               std::to_string(index) + ".dat");
+                               std::to_string(index) + "-freq.dat");
     relfreq_file << relative_frequency;
   }
   last_typed_word_index = index;
