@@ -12,35 +12,40 @@ class top_n {
 
   void push(const T& key, const int freq) {
     bool should_insert = true;
+
     int size = keys.size();
+    // prevent repeated key insertion
     for (int i = 0; i < size; i++)
       if (keys[i] == key) {
+        // update frequency
         freqs[i] = freq;
+
+        // insert and keep sorted
+        for (int j = i - 1; j >= 0 && freqs[j] < freqs[j + 1]; j--) {
+          std::swap(freqs[j], freqs[j + 1]);
+          std::swap(keys[j], keys[j + 1]);
+        }
+
         should_insert = false;
       }
 
     if (should_insert) {
       keys.push_back(key);
       freqs.push_back(freq);
+
+      // restore ordering
+      for (int i = size - 1; i >= 0 && freqs[i] < freqs[i + 1]; i--) {
+        std::swap(freqs[i], freqs[i + 1]);
+        std::swap(keys[i], keys[i + 1]);
+      }
+
       size++;
     }
 
-    sort();
-
+    // discard extraneous
     if (size > n) {
       keys.pop_back();
       freqs.pop_back();
-    }
-  }
-
-  void sort() {
-    const int size = keys.size();
-    for (int i = 0; i < size; i++) {
-      int l = i;
-      for (int j = i + 1; j < size; j++)
-        if (!Compare()(freqs[l], freqs[j])) l = j;
-      std::swap(keys[i], keys[l]);
-      std::swap(freqs[i], freqs[l]);
     }
   }
 
