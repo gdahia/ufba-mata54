@@ -152,7 +152,7 @@ void Dictionary::update_word_sequencing(const int index) {
 std::vector<int> Dictionary::get_most_plausible_corrections(
     const std::string& word) const {
   // maintain number of times each substring appears
-  const int n_words = word.size();
+  const int n_words = words.size();
   std::vector<int> subwords_frequencies(n_words, 0);
 
   // query substrings of words in substring of dictionary words
