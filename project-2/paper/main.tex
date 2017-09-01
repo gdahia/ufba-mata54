@@ -1,0 +1,47 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+
+\title{Segundo trabalho prático - MATA54}
+
+\author{Gabriel Dahia}
+
+\begin{document}
+
+  \maketitle
+
+  \section{Considerações gerais}
+    Este documento descreve as estruturas de dados e algoritmos utilizados para a implementação do segundo trabalho prático da disciplina MATA54 - Estrutura de Dados e Algoritmos II da Universidade Federal da Bahia.
+
+    Durante todo o texto, a não ser que indicado, $n$ se refere ao número total de palavras na base de palavras e $m$ se refere ao maior comprimento possível de uma palavra.
+    Quando $s$ é a palavra da operação de digitação $i$ e $p$ é a palavra da operação de digitação $i + 1$, é dito que $p$ \emph{sucede} $s$.
+
+    Foram feitas as seguintes suposições sobre o funcionamento do sistema:
+    \begin{itemize}
+      \item Caso uma palavra esteja no banco de palavras, ela não será reinserida através de uma operação de inserção;
+      \item O término de uma execução do programa significa o fim do texto digitado.
+        Isto é, a primeira palavra uma execução do programa não sucede a última palavra da execução anterior;
+      \item Não há limite para o número de arquivos criados.
+    \end{itemize}
+
+
+  \section{Base de palavras}
+    Cada vez que uma palavra $p$ é inserida na base de palavras, seja via uma operação de inserção, seja via uma operação de digitação, é atribuido a ela um identificador númerico inteiro $i_p$ no intervalo $[0, n - 1]$.
+    Os identificadores são atribuídos sequencialmente às palavras -- se uma palavra $p$ foi digitada antes de uma palavra $s$, então necessariamente $i_p < i_s$.
+    Disso decorre que $i_p$ identifica unicamente a palavra $p$, já que a operação de digitação não permite a reinserção de palavras na base e é um pressuposto que não serão inseridas palavras repetidas através da operação de inserção.
+
+    \subsection{Persistência}
+    Mediante a inserção de $p$ na base de palavras, são criados arquivos ``$i_p$\emph{-word.dat}'' (doravante chamado de arquivo de $p$) e ``$i_p$\emph{-freq.dat}'' (doravante chamado arquivo de frequência de $p$) que guardam, respectivamente, a palavra $p$ e o número de vezes que $p$ foi digitada.
+    Quando uma palavra $p$ sucede uma palavra $s$, caso essa seja a primeira ocorrência desse evento, é criado um arquivo ``$i_s$-$i_p$\emph{-freq.dat}'' com valor 1 (esse arquivo será referido como arquivo de $s$-$p$).
+
+    Assim, toda vez que uma palavra $p$ for digitada, sua frequência é lida a partir do seu arquivo de frequência, é incrementada e então é reescrita, agora atualizada, no dispositivo de memória secundária.
+    Caso $p$ tenha sucedido uma palavra $s$, é feita uma tentativa de leitura do arquivo de $s$-$p$.
+    Se essa tentativa falhar, supõe-se que o arquivo não existe e $p$, como visto anteriormente, esse evento ainda não havia ocorrido.
+    Caso a tentativa seja bem sucedida, a frequência relativa é atualizada de maneira análoga a atualização da frequência absoluta.
+
+    A atribuição de um identificador único e a criação de arquivos individuais permite a atualização das frequências na memória secundária com operações que, descontando o tempo de acesso do arquivo, equivalem a acesso aleatório.
+
+    No começo de cada execução do sistema, as palavras e seus identificadores são carregados na memória principal através da leitura sequencial dos $n$ arquivos de palavra existentes.
+    Quando da leitura do arquivo da palavra $p$, seu arquivo de frequência e, para todo $i_s < i_p$, os arquivos $s$-$p$ e $p$-$s$ serão também carregados na memória principal.
+    Isso é suficiente para garantir a persistência dos dados.
+\end{document}
