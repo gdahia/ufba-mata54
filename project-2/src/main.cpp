@@ -39,6 +39,7 @@ int main() {
       case 'f':
         dict.print_frequencies(std::cout);
         break;
+
       case 'p':
         std::cin >> word;
         dict.print_followup_frequencies(word, std::cout);
