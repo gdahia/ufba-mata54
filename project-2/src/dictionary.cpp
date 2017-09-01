@@ -117,7 +117,7 @@ std::vector<int> Dictionary::get_most_frequent_followups(
       bool already_suggested = false;
       for (int j : most_frequent_words_indices)
         if (j == i) {
-          already_suggested = false;
+          already_suggested = true;
           break;
         }
       if (!already_suggested) {
@@ -200,7 +200,7 @@ std::vector<int> Dictionary::get_most_plausible_corrections(
       bool already_suggested = false;
       for (int j : most_plausible_corrections_indices)
         if (j == i) {
-          already_suggested = false;
+          already_suggested = true;
           break;
         }
       if (!already_suggested) {
