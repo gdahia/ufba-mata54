@@ -24,25 +24,10 @@ Dictionary::Dictionary() {
     abs_frequencies.push_back(abs_frequency);
 
     // read ith word relative frequencies to all predecessors
-    relative_frequencies.push_back(std::map<int, int>());
+    relative_frequencies.push_back(top_n<int>(3));
     for (int j = 0; j <= i; j++) {
-      // read i-j relative frequency
-      std::ifstream input(std::to_string(i) + "-" + std::to_string(j) +
-                          "-freq.dat");
-      if (input) {
-        int rel_frequency;
-        input >> rel_frequency;
-        if (rel_frequency) relative_frequencies[i][j] = rel_frequency;
-      }
-
-      // read j-i relative frequency
-      std::ifstream rev_input(std::to_string(j) + "-" + std::to_string(i) +
-                              "-freq.dat");
-      if (rev_input) {
-        int rel_frequency;
-        rev_input >> rel_frequency;
-        if (rel_frequency) relative_frequencies[j][i] = rel_frequency;
-      }
+      relative_frequencies[i].push(j, retrieve_relative_frequency(i, j));
+      relative_frequencies[j].push(i, retrieve_relative_frequency(j, i));
     }
 
     // rebuild tries
@@ -62,7 +47,7 @@ int Dictionary::insert(const std::string& word) {
   const int index = words.size();
   words.push_back(word);
   abs_frequencies.push_back(0);
-  relative_frequencies.push_back(std::map<int, int>());
+  relative_frequencies.push_back(top_n<int>(3));
 
   // add word to tries
   whole_words.insert(word, index);
@@ -103,12 +88,8 @@ int Dictionary::query_correctness(const std::string& word) const {
 std::vector<int> Dictionary::get_most_frequent_followups(
     const int index) const {
   // find said words
-  std::vector<int> most_frequent_words_indices;
-  for (auto it = relative_frequencies[index].crbegin();
-       it != relative_frequencies[index].crend(); it++) {
-    most_frequent_words_indices.push_back(it->first);
-    if (most_frequent_words_indices.size() == 3) break;
-  }
+  std::vector<int> most_frequent_words_indices =
+      relative_frequencies[index].get_keys();
 
   // complete 3 suggestions, if possible
   if (most_frequent_words_indices.size() < 3) {
@@ -130,18 +111,31 @@ std::vector<int> Dictionary::get_most_frequent_followups(
   return most_frequent_words_indices;
 }
 
+int Dictionary::retrieve_relative_frequency(const int i, const int j) const {
+  int relative_frequency;
+  std::ifstream relative_frequency_file(std::to_string(i) + "-" +
+                                        std::to_string(j) + "-freq.dat");
+  if (relative_frequency_file)
+    relative_frequency_file >> relative_frequency;
+  else
+    relative_frequency = 0;
+  return relative_frequency;
+}
+
 void Dictionary::update_word_sequencing(const int index) {
   if (first_typed_word)
     first_typed_word = false;
   else {
     // update relative frequency in dataset
     const int relative_frequency =
-        ++relative_frequencies[last_typed_word_index][index];
+        retrieve_relative_frequency(last_typed_word_index, index) + 1;
+    relative_frequencies[last_typed_word_index].push(index, relative_frequency);
 
     // update/create relative frequncy file
-    std::ofstream relfreq_file(std::to_string(last_typed_word_index) + "-" +
-                               std::to_string(index) + "-freq.dat");
-    relfreq_file << relative_frequency;
+    std::ofstream relative_frequency_file(
+        std::to_string(last_typed_word_index) + "-" + std::to_string(index) +
+        "-freq.dat");
+    relative_frequency_file << relative_frequency;
   }
   last_typed_word_index = index;
   abs_frequencies[index]++;
@@ -157,9 +151,7 @@ std::vector<int> Dictionary::get_most_plausible_corrections(
   // taking only those that appear most frequently
   const int len = word.size();
   std::string subword;
-  std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>,
-                      std::greater<std::pair<int, int>>>
-      filtered_indices;
+  top_n<int> filtered_indices(3);
   for (int i = 0; i < len; i++) {
     // query substring
     std::vector<int> subword_query =
@@ -167,29 +159,15 @@ std::vector<int> Dictionary::get_most_plausible_corrections(
 
     // update three corrections as most frequent possible
     for (const int index : subword_query)
-      if (filtered_indices.size() < 3 ||
-          filtered_indices.top().first < abs_frequencies[index]) {
-        filtered_indices.emplace(abs_frequencies[index], index);
-        if (filtered_indices.size() > 3) filtered_indices.pop();
-      }
+      filtered_indices.push(index, abs_frequencies[index]);
 
     // update string
     subword += word[i];
   }
 
   // retrieve corrections indices
-  std::vector<int> most_plausible_corrections_indices;
-  while (!filtered_indices.empty()) {
-    int index, frequency;
-    std::tie(frequency, index) = filtered_indices.top();
-    filtered_indices.pop();
-    most_plausible_corrections_indices.push_back(index);
-  }
-
-  // sort corrections by frequency
-  if (most_plausible_corrections_indices.size() > 1)
-    std::swap(most_plausible_corrections_indices[0],
-              most_plausible_corrections_indices.back());
+  std::vector<int> most_plausible_corrections_indices =
+      filtered_indices.get_keys();
 
   // complete 3 corrections, if possible
   const int n_words = words.size();
@@ -239,13 +217,11 @@ void Dictionary::print_followup_frequencies(const std::string& word,
                                             std::ostream& os) const {
   const int index = query_correctness(word);
   if (index >= 0) {
-    const std::vector<int> followup_indices =
-        get_most_frequent_followups(index);
-    const std::map<int, int>& relative_frequency = relative_frequencies[index];
-    for (const int i : followup_indices) {
-      auto it = relative_frequency.find(i);
-      if (it != relative_frequency.cend())
-        os << words[i] << " " << it->second << std::endl;
-    }
+    const std::vector<int> keys = relative_frequencies[index].get_keys();
+    const std::vector<int> freqs =
+        relative_frequencies[index].get_frequencies();
+    const int len = keys.size();
+    for (int i = 0; i < len; i++)
+      if (freqs[i]) os << words[keys[i]] << " " << freqs[i] << std::endl;
   }
 }

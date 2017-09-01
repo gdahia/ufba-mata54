@@ -1,12 +1,12 @@
 #ifndef DICTIONARY_HPP
 #define DICTIONARY_HPP
 
-#include <map>
 #include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "top_n.hpp"
 #include "trie.hpp"
 
 class Dictionary {
@@ -25,10 +25,11 @@ class Dictionary {
   Trie whole_words, partial_words;
   std::vector<std::string> words;
   std::vector<int> abs_frequencies;
-  std::vector<std::map<int, int>> relative_frequencies;
+  std::vector<top_n<int>> relative_frequencies;
   bool first_typed_word;
   int last_typed_word_index;
 
+  int retrieve_relative_frequency(const int, const int) const;
   std::vector<int> get_most_frequent_followups(const int) const;
   std::vector<int> get_most_plausible_corrections(const std::string&) const;
 };

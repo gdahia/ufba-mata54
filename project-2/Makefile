@@ -10,7 +10,7 @@ main.out: main.o trie.o dictionary.o
 trie.o: src/trie.cpp include/trie.hpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $<
 
-dictionary.o: src/dictionary.cpp include/dictionary.hpp include/trie.hpp
+dictionary.o: src/dictionary.cpp include/dictionary.hpp include/trie.hpp include/top_n.hpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $<
 
 main.o: src/main.cpp
@@ -18,3 +18,6 @@ main.o: src/main.cpp
 
 clean:
 	rm -f *.o *.out
+
+wipe:
+	rm -f *.dat
