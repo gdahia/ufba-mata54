@@ -27,8 +27,12 @@ int main() {
 
           // treat retyped word as either insertion or correction
           int index = dict.query_correctness(word);
-          if (index < 0) index = dict.insert(word);
-          dict.update_word_sequencing(index);
+          if (index >= 0)
+            dict.type_word(word, std::cout);
+          else {
+            index = dict.insert(word);
+            dict.update_word_sequencing(index);
+          }
         }
         break;
 
