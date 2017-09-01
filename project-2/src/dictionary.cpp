@@ -217,8 +217,8 @@ void Dictionary::print_followup_frequencies(const std::string& word,
                                             std::ostream& os) const {
   const int index = query_correctness(word);
   if (index >= 0) {
-    const std::vector<int> keys = relative_frequencies[index].get_keys();
-    const std::vector<int> freqs =
+    const std::vector<int>& keys = relative_frequencies[index].get_keys();
+    const std::vector<int>& freqs =
         relative_frequencies[index].get_frequencies();
     const int len = keys.size();
     for (int i = 0; i < len; i++)
