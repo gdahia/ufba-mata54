@@ -68,7 +68,7 @@
     Caso a tentativa seja bem sucedida, a frequência relativa é atualizada de maneira análoga a atualização da frequência absoluta.
 
     A atribuição de um identificador único e a criação de arquivos individuais permite a atualização das frequências na memória secundária com operações que, descontando o tempo de acesso do arquivo, equivalem a acesso aleatório.
-    Essa abordagem é superior a métodos de hashing extensível porque permite o acesso aos dados em exatamente uma requisição de página.
+    Essa abordagem é superior a métodos de hashing extensível porque permite o recuperar os dados acessando exatamente uma página.
 
     No começo de cada execução do sistema, as palavras e seus identificadores são carregados na memória principal através da leitura sequencial dos $n$ arquivos de palavra existentes.
     Quando da leitura do arquivo da palavra $p$, seu arquivo de frequência e, para todo $i_s < i_p$, os arquivos $s$-$p$ e $p$-$s$ serão também carregados na memória principal.
