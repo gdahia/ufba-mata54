@@ -49,7 +49,7 @@
     A desvantagem aparenta estar na complexidade linear na operação de inserção de um par.
 
     Contudo, é importante perceber que o número de operações tem complexidade linear para o valor de $N$ pares \emph{guardados na lista}; ou seja, para um valor fixo de $N$, o custo por operação de inserção é constante.
-    Apesar de esse mesmo argumento poder ser feito para qualquer estrutura de dados que guardasse exatamente $N$ pares e descartasse os últimos, como para esse sistema serão necessários apenas listas de tamanho 3, as vantagens da estrutura (acesso linear aos elementos ordenados, constantes por operação baixa e implementação ingênua) superam os benefícios de outras estruturas de dados, como heaps ou árvores balanceadas.
+    Apesar de esse mesmo argumento poder ser feito para qualquer estrutura de dados que guardasse exatamente $N$ pares e descartasse os excedentes, como para esse sistema serão necessários apenas listas de tamanho 3, as vantagens da estrutura (acesso linear aos elementos ordenados, constantes por operação baixa e implementação ingênua) superam os benefícios de outras estruturas de dados, como heaps ou árvores balanceadas.
 
   \section{Detalhes da implementação}
     Cada vez que uma palavra $p$ é inserida na base de palavras, seja via uma operação de inserção, seja via uma operação de digitação, é atribuido a ela um identificador númerico inteiro $i_p$ no intervalo $[0, n - 1]$.
@@ -58,9 +58,9 @@
     Os identificadores são atribuídos sequencialmente às palavras -- se uma palavra $p$ foi digitada antes de uma palavra $s$, então necessariamente $i_p < i_s$.
     Disso decorre que $i_p$ identifica unicamente a palavra $p$, já que a operação de digitação não permite a reinserção de palavras na base e é um pressuposto que não serão inseridas palavras repetidas através da operação de inserção.
 
-    São mantidos, em memória principal, as $n$ palavras do banco de palavras e suas frequências, duas tries, $T$ e $T'$, o índice da última palavra digitada e, para cada palavra, os índices das três palavras que mais frequentemente a sucederam, guardados em listas como descritos na Seção~\ref{sec:list} -- os índices das palavras representam as chaves das listas.
+    São mantidos, em memória principal, as $n$ palavras do banco de palavras e suas frequências, duas tries, $T$ e $T'$, o índice da última palavra digitada e, para cada palavra, os índices e as frequências das três palavras que mais frequentemente a sucederam, guardados em listas como descritos na Seção~\ref{sec:list} -- os índices das palavras representam as chaves das listas.
 
-    \subsection{Persistência}
+    \subsection{Persistência} \label{sec:pers}
     Mediante a inserção de $p$ na base de palavras, são criados arquivos ``$i_p$\emph{-word.dat}'' (doravante chamado de arquivo de $p$) e ``$i_p$\emph{-freq.dat}'' (doravante chamado arquivo de frequência de $p$) que guardam, respectivamente, a palavra $p$ e o número de vezes que $p$ foi digitada.
     Quando uma palavra $p$ sucede uma palavra $s$, caso essa seja a primeira ocorrência desse evento, é criado um arquivo ``$i_s$-$i_p$\emph{-freq.dat}'' com valor 1 (esse arquivo será referido como arquivo de $s$-$p$).
 
@@ -83,12 +83,13 @@
     Com isso, pode-se determinar se uma palavra está ou não presente no banco de palavras em complexidade $O(m)$.
 
     \subsection{Sugestão de próximas palavras}
-    Uma vez digitada a palavra $p$, é possível obter que palavras mais frequentemente a sucederam até a execução do programa até esse ponto acessando a lista disponível em memória principal para esse fim.
+    Uma vez digitada a palavra $p$, é possível obter as três palavras que mais frequentemente a sucederam até esse momento acessando a lista disponível em memória principal para esse fim.
     Nela, os elementos já se encontram apropriadamente ordenados.
     Essa consulta, então, pode ser respondida em $O(1)$ operações.
 
-    Para manter as listas de frequências relativas atualizadas, se $p$ sucedeu $s$, é realizada uma operação de inserção na lista que mantém a frequência relativa de $s$-$p$.
-    Pela estrutura da lista, isso é suficiente para que, na próxima requisição, as listas apresentem a organização desejada.
+    Para manter as listas de frequências relativas atualizadas, se $p$ sucedeu $s$, como visto na Seção~\ref{sec:pers}, a frequência relativa de $s$-$p$ é recuperada da memória secundária (seja através da leitura bem ou mal sucedida do arquivo de $s$-$p$).
+    De posse dessa frequência, é realizada uma operação de inserção na lista que mantém as frequências relativas de $s$.
+    Pela estrutura da lista, isso é suficiente para que, na próxima requisição, todas listas apresentem a organização desejada.
     A lista, portanto, também pode ser atualizada em tempo constante.
 
     \subsection{Possíveis correções}
@@ -104,7 +105,7 @@
     A complexidade para encontrar as 3 possíveis correções mais frequentes é, portanto, $O(m^2 + n)$.
 
     \subsection{Impressão de frequências}
-    Para imprimir as palavras e suas frequências em ordem alfabética, percorremos a trie $T$ em ordem infixa e guardamos, na ordem em que são vistos, os índices em seus nós.
+    Para imprimir as palavras e suas frequências em ordem alfabética, percorremos a trie $T$ em ordem infixa e guardamos, na ordem em que são vistos, os índices presentes nas listas de seus nós.
     O custo computacional dessa operação é igual ao número de nós na trie $T$: $O(nm)$.
     Esse procedimento coloca os nós em ordem alfabética na lista retornada. 
     Vale lembrar que as frequências com que as palavras aparecem estão armazenados na memória principal.
