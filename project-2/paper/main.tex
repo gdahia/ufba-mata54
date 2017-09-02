@@ -83,8 +83,11 @@
     \subsection{Sugestão de próximas palavras}
     Uma vez digitada a palavra $p$, é possível obter que palavras mais frequentemente a sucederam até a execução do programa até esse ponto acessando a lista disponível em memória principal para esse fim.
     Nela, os elementos já se encontram apropriadamente ordenados.
+    Essa consulta, então, pode ser respondida em $O(1)$ operações.
+
     Para manter as listas de frequências relativas atualizadas, se $p$ sucedeu $s$, é realizada uma operação de inserção na lista que mantém a frequência relativa de $s$-$p$.
     Pela estrutura da lista, isso é suficiente para que, na próxima requisição, as listas apresentem a organização desejada.
+    A lista, portanto, também pode ser atualizada em tempo constante.
 
     \subsection{Possíveis correções}
     Dada uma palavra $p$, as possíveis correções de $p$ foram definidas como palavras que estão no banco de palavras, tem o mesmo comprimento de $p$ e dela diferem pela substituição de um caractere.
