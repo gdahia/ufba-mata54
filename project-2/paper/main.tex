@@ -2,6 +2,8 @@
 
 \usepackage[utf8]{inputenc}
 
+\hyphenation{an-te-rior-men-te}
+
 \title{Segundo trabalho prático - MATA54}
 
 \author{Gabriel Dahia}
@@ -14,13 +16,13 @@
     Este documento descreve as estruturas de dados e algoritmos utilizados para a implementação do segundo trabalho prático da disciplina MATA54 - Estrutura de Dados e Algoritmos II da Universidade Federal da Bahia.
 
     Durante todo o texto, a não ser que indicado, $n$ se refere ao número total de palavras na base de palavras e $m$ se refere ao maior comprimento possível de uma palavra.
-    Quando $s$ é a palavra da operação de digitação $i$ e $p$ é a palavra da operação de digitação $i + 1$, é dito que $p$ \emph{sucede} $s$.
+    Quando $s$ é a palavra da operação de digitação de número $i$ e $p$ é a palavra da operação de digitação número $i + 1$, é dito que $p$ \emph{sucede} $s$.
 
     Foram feitas as seguintes suposições sobre o funcionamento do sistema:
     \begin{itemize}
       \item Caso uma palavra esteja no banco de palavras, ela não será reinserida através de uma operação de inserção;
       \item O término de uma execução do programa significa o fim do texto digitado.
-        Isto é, a primeira palavra uma execução do programa não sucede a última palavra da execução anterior;
+        Isto é, a primeira palavra digitada em uma execução do programa não sucede a última palavra digitada na execução anterior;
       \item Não há limite para o número de arquivos criados.
     \end{itemize}
 
@@ -37,11 +39,11 @@
     Para manutenção das $N$ chaves com maior frequência, escolheu-se por utilizar uma lista implementada em vetor com $N$ pares chave-frequência.
 
     Dadas chaves e suas fre\-quên\-cias, mantém-se os $N$ pares chave-frequência ordenados decrescentemente por valor de frequência.
-    A operação de inserção (todas as referências à operação de inserção em listas desse tipo se referirão a operação aqui descrita) de um par chave-frequência pode ser feita $O(1)$ operações, desde que seja feita no fim do vetor subjacente.
+    A operação de inserção (todas as referências à operação de inserção em listas desse tipo se referirão à operação aqui descrita) de um par chave-frequência pode ser feita $O(1)$ operações, desde que seja feita no fim do vetor subjacente.
     Para manter as chaves em ordem decrescente de frequência e manter apenas pares com valores de chave distintos, a lista é reordenada em $O(N)$ operações e, caso o número de pares supere $N$, o que apresenta menor frequência pode ser descartado em $O(1)$ operações.
     Portanto, a operação de inserção demanda $O(N)$ operações.
 
-    A vantagem em utilizar essa estrutura é que a sua implementação é extremamente simples, sua estrutura permite acessar sequencialmente os pares de maneira linear e as constantes necessárias para realizar essas operações são pequenas.
+    A vantagem em utilizar essa estrutura é que a sua implementação é extremamente simples, é possível acessar sequencialmente os pares de maneira linear e as constantes necessárias para realizar essas operações são pequenas.
     A desvantagem aparenta estar na complexidade linear na operação de inserção de um par.
 
     Contudo, é importante perceber que o número de operações tem complexidade linear para o valor de $N$ pares \emph{guardados na lista}; ou seja, para um valor fixo de $N$, o custo por operação de inserção é constante.
@@ -49,6 +51,8 @@
 
   \section{Detalhes da implementação}
     Cada vez que uma palavra $p$ é inserida na base de palavras, seja via uma operação de inserção, seja via uma operação de digitação, é atribuido a ela um identificador númerico inteiro $i_p$ no intervalo $[0, n - 1]$.
+    Em particular, se antes da inserção de $p$ existiam $n$ palavras na base, $i_p \leftarrow n - 1$ e, em seguida, o valor de $n$ aumenta em uma unidade.
+
     Os identificadores são atribuídos sequencialmente às palavras -- se uma palavra $p$ foi digitada antes de uma palavra $s$, então necessariamente $i_p < i_s$.
     Disso decorre que $i_p$ identifica unicamente a palavra $p$, já que a operação de digitação não permite a reinserção de palavras na base e é um pressuposto que não serão inseridas palavras repetidas através da operação de inserção.
 
@@ -60,28 +64,29 @@
 
     Assim, toda vez que uma palavra $p$ for digitada, sua frequência é lida a partir do seu arquivo de frequência, é incrementada e então é reescrita, agora atualizada, no dispositivo de memória secundária.
     Caso $p$ tenha sucedido uma palavra $s$, é feita uma tentativa de leitura do arquivo de $s$-$p$.
-    Se essa tentativa falhar, supõe-se que o arquivo não existe e $p$, como visto anteriormente, esse evento ainda não havia ocorrido.
+    Se essa tentativa falhar, supõe-se que o arquivo não existe e, como visto anteriormente, o evento ``$p$ sucede $s$'' ainda não havia ocorrido.
     Caso a tentativa seja bem sucedida, a frequência relativa é atualizada de maneira análoga a atualização da frequência absoluta.
 
     A atribuição de um identificador único e a criação de arquivos individuais permite a atualização das frequências na memória secundária com operações que, descontando o tempo de acesso do arquivo, equivalem a acesso aleatório.
+    Essa abordagem é superior a métodos de hashing extensível porque permite o acesso aos dados em exatamente uma requisição de página.
 
     No começo de cada execução do sistema, as palavras e seus identificadores são carregados na memória principal através da leitura sequencial dos $n$ arquivos de palavra existentes.
     Quando da leitura do arquivo da palavra $p$, seu arquivo de frequência e, para todo $i_s < i_p$, os arquivos $s$-$p$ e $p$-$s$ serão também carregados na memória principal.
     Isso é suficiente para garantir a persistência dos dados.
 
     \subsection{Consulta de palavras}
-    Para realizar a consulta se uma determinada palavra está ou não presente na base de palavras, é mantida uma Trie $T$.
+    Para consultar se uma determinada palavra está ou não presente na base de palavras de maneira eficiente, é mantida uma Trie $T$.
     Quando uma palavra $p$ é inserida no banco de palavras ou carregada da memória secundária, inserimos $<p, i_p>$ em $T$.
     Para determinar se $p$ é uma palavra correta, basta verificar se $T(r, p)~\ne~\emptyset$.
     Com isso, pode-se determinar se uma palavra está ou não presente no banco de palavras em complexidade $O(m)$.
 
     \subsection{Sugestão de próximas palavras}
-    Uma vez digitada a palavra $p$, é possível obter que mais frequentemente a sucederam até a execução do programa até esse ponto acessando a lista disponível em memória principal para esse fim.
+    Uma vez digitada a palavra $p$, é possível obter que palavras mais frequentemente a sucederam até a execução do programa até esse ponto acessando a lista disponível em memória principal para esse fim.
     Nela, os elementos já se encontram apropriadamente ordenados.
-    Para manter as listas de frequências relativas atualizadas, se $p$ sucedeu $s$, é realizada uma operação de inserção na lista que mantém a frequência relative de $s$-$p$.
-    Isso é suficiente para que, na próxima requisição, as listas estejam corretas.
+    Para manter as listas de frequências relativas atualizadas, se $p$ sucedeu $s$, é realizada uma operação de inserção na lista que mantém a frequência relativa de $s$-$p$.
+    Pela estrutura da lista, isso é suficiente para que, na próxima requisição, as listas apresentem a organização desejada.
 
     \subsection{Possíveis correções}
-    Dada uma palavra $p$, as possíveis correções de $p$ foram definidas como palavras que estão no banco de palavras e diferem de $p$ pela substituição de um caractere.
+    Dada uma palavra $p$, as possíveis correções de $p$ foram definidas como palavras que estão no banco de palavras, tem o mesmo comprimento de $p$ e dela diferem pela substituição de um caractere.
 
 \end{document}
